@@ -46,6 +46,25 @@ export function updateComponent<T extends componentTypes.UnionType>(
     return repository.updateComponent(component, data);
 }
 
+export function getEntitiesWithComponents<T1 extends componentTypes.UnionType>(
+    sessionId: string,
+    type1: T1
+): (Entity & WithComponent<T1>)[];
+export function getEntitiesWithComponents<
+    T1 extends componentTypes.UnionType,
+    T2 extends componentTypes.UnionType
+>(
+    sessionId: string,
+    type1: T1,
+    type2: T2
+): (Entity & WithComponent<T1 | T2>)[];
+export function getEntitiesWithComponents(
+    sessionId: string,
+    ...types: componentTypes.UnionType[]
+): Entity[] {
+    return repository.getEntitiesWithComponents(sessionId, types);
+}
+
 export {
     componentTypes as components,
 };

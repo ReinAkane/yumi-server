@@ -1,6 +1,6 @@
 import v4 from 'uuid/v4';
 import {
-    Entity, Component,
+    Entity, Component, WithComponent,
 } from './types';
 import { ComponentData, UnionType } from './components';
 
@@ -103,7 +103,7 @@ function getComponentTypeCache(sessionId: string, type: UnionType): Set<string> 
 }
 
 function getExistingEntity(sessionId: string, entityId: string): StoredEntity {
-    if (getExistingSession(sessionId).entityIds.has(entityId)) {
+    if (!getExistingSession(sessionId).entityIds.has(entityId)) {
         throw new Error('No such entity in session.');
     }
     const entity = entities.get(entityId);
@@ -122,13 +122,12 @@ function mapComponent<T extends UnionType>(input: StoredComponent<T>): Component
     };
 }
 
-export function getEntity(sessionId: string, entityId: string): Entity {
-    const stored = getExistingEntity(sessionId, entityId);
+function mapEntity(input: StoredEntity): Entity {
     let resultComponents: {
         [T in UnionType]?: Component<T>[]
     } = {};
 
-    for (const componentId of stored.componentIds) {
+    for (const componentId of input.componentIds) {
         const component = getExistingComponent(componentId);
         const list: Component<typeof component.data.type>[] | undefined = resultComponents[
             component.data.type
@@ -147,11 +146,17 @@ export function getEntity(sessionId: string, entityId: string): Entity {
     }
 
     const result: Entity = {
-        id: stored.id,
+        id: input.id,
         components: resultComponents,
     };
 
     return result;
+}
+
+export function getEntity(sessionId: string, entityId: string): Entity {
+    const stored = getExistingEntity(sessionId, entityId);
+
+    return mapEntity(stored);
 }
 
 export function addComponent<T extends UnionType>(
@@ -190,4 +195,29 @@ export function updateComponent<T extends UnionType>(
     Object.assign(storedComponent.data, data);
 
     return mapComponent(storedComponent);
+}
+
+export function getEntitiesWithComponents(
+    sessionId: string,
+    types: UnionType[],
+): Entity[] {
+    const session = getExistingSession(sessionId);
+    const result: Entity[] = [];
+
+    for (const entityId of session.entityIds) {
+        const entity = getExistingEntity(sessionId, entityId);
+        const componentTypesOnEntity = new Set();
+
+        for (const componentId of entity.componentIds) {
+            const component = getExistingComponent(componentId);
+
+            componentTypesOnEntity.add(component.data.type);
+        }
+
+        if (types.every((type) => componentTypesOnEntity.has(type))) {
+            result.push(mapEntity(entity));
+        }
+    }
+
+    return result;
 }
