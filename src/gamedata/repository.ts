@@ -1,4 +1,6 @@
-import { CharacterData, DemonData, EnemyData } from './types';
+import {
+    CharacterData, EnemyData, ActionCardData, PositionCardData,
+} from './types';
 
 function mapFromObject<T>(input: {[key: string]: T}): Map<string, T & {id: string}> {
     const result = new Map<string, T & {id: string}>();
@@ -14,26 +16,20 @@ const characters: Map<string, CharacterData> = mapFromObject({
     elf: {
         name: 'Elf',
         maxHp: 3,
+        actionCards: [],
+        positionCards: [[], [], []],
     },
     jeanne: {
         name: 'Jeanne',
         maxHp: 4,
+        actionCards: [],
+        positionCards: [[], [], []],
     },
     medusa: {
         name: 'Medusa',
         maxHp: 3,
-    },
-});
-
-const demons: Map<string, DemonData> = mapFromObject({
-    chiyo: {
-        name: 'Chiyo',
-    },
-    meru: {
-        name: 'Meru',
-    },
-    miyu: {
-        name: 'Miyu',
+        actionCards: [],
+        positionCards: [[], [], []],
     },
 });
 
@@ -41,6 +37,19 @@ const enemies: Map<string, EnemyData> = mapFromObject({
     jotun: {
         name: 'Jotun',
         maxHp: 10,
+        actionCards: [],
+    },
+});
+
+const actionCards: Map<string, ActionCardData> = mapFromObject({
+    basic: {
+        name: 'Basic Card',
+    },
+});
+
+const positionCards: Map<string, PositionCardData> = mapFromObject({
+    basic: {
+        name: 'Basic Position',
     },
 });
 
@@ -74,4 +83,24 @@ export function getCharacter(characterId: string): CharacterData {
     }
 
     return character;
+}
+
+export function getActionCard(actionCardId: string): ActionCardData {
+    const actionCard = actionCards.get(actionCardId);
+
+    if (undefined === actionCard) {
+        throw new Error('No such action card.');
+    }
+
+    return actionCard;
+}
+
+export function getPositionCard(positionCardId: string): PositionCardData {
+    const positionCard = positionCards.get(positionCardId);
+
+    if (undefined === positionCard) {
+        throw new Error('No such position card.');
+    }
+
+    return positionCard;
 }

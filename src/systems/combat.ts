@@ -1,6 +1,7 @@
 import * as state from '../state';
 import * as database from '../database';
 import * as gamedata from '../gamedata';
+import * as decks from './decks';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -36,39 +37,84 @@ export function beginCombat(
     // verify enemy is valid
     const enemyData = gamedata.getEnemy(enemyId);
     // create status entities
-    state.createEntity(sessionId, [
-        state.createComponent({
+    const combatStatus = state.addComponent(
+        sessionId,
+        state.createEntity(sessionId, []),
+        {
             type: 'combat status',
-        }),
-    ]);
+            state: 'setting up',
+        },
+    );
 
     state.createEntity(sessionId, [
-        state.createComponent({
+        {
             type: 'enemy status',
             dataId: enemyId,
-        }),
-        state.createComponent({
+        },
+        {
             type: 'health',
             hp: enemyData.maxHp,
-        }),
+        },
+        {
+            type: 'action deck',
+            cardIds: enemyData.actionCards,
+        },
     ]);
+
+    const playerActionCards: string[] = [];
 
     for (const characterId of characterIds) {
         const characterData = gamedata.getCharacter(characterId);
         state.createEntity(sessionId, [
-            state.createComponent({
+            {
                 type: 'character status',
                 dataId: characterId,
-            }),
-            state.createComponent({
+            },
+            {
                 type: 'health',
                 hp: characterData.maxHp,
-            }),
+            },
+            {
+                type: 'position',
+                stage: 0,
+                allCardIds: characterData.positionCards,
+            },
         ]);
+        playerActionCards.push(...characterData.actionCards);
     }
-    // create player, enemy, and position decks
+
+    const player = state.addComponent(
+        sessionId,
+        state.addComponent(
+            sessionId,
+            state.createEntity(sessionId, [
+                {
+                    type: 'player status',
+                },
+            ]),
+            {
+                type: 'action deck',
+                cardIds: playerActionCards,
+            },
+        ),
+        {
+            type: 'hand',
+            cardIds: [],
+        },
+    );
     // draw starting hand
+    decks.draw(
+        player.components['action deck'][0],
+        player.components.hand[0],
+        1,
+    );
     // wait for player action input
+    state.updateComponent(
+        combatStatus.components['combat status'][0],
+        {
+            state: 'waiting for action',
+        },
+    );
 }
 
 export function abortCombat(sessionId: string): boolean {

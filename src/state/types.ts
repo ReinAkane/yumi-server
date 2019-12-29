@@ -1,10 +1,23 @@
-import { Union } from './components';
+import {
+    UnionType, ComponentData,
+} from './components';
 
-export type Component = Readonly<Union & {id: string}>;
+export type Component<T extends UnionType = UnionType> = {
+    id: string,
+    data: ComponentData<T>
+};
 
 export type Entity = {
     readonly id: string;
-    readonly components: Iterable<Component>;
+    readonly components: {
+        readonly [T in UnionType]?: readonly Component<T>[];
+    }
+};
+
+export type WithComponent<T extends UnionType> = {
+    readonly components: {
+        readonly [U in T]: readonly Component<U>[]
+    }
 };
 
 export type SessionState = {
