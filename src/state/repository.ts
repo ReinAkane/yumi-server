@@ -117,3 +117,7 @@ export function hasComponentOfType(sessionId: string, type: UnionType): boolean 
 
     return cache.size > 0;
 }
+
+export function getAccountForSession(sessionId: string): string {
+    return getExistingSession(sessionId).accountId;
+}

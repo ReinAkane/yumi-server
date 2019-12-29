@@ -21,6 +21,14 @@ export function hasComponentOfType(sessionId: string, type: componentTypes.Union
     return repository.hasComponentOfType(sessionId, type);
 }
 
+export function getAccountForSession(sessionId: string): string {
+    return repository.getAccountForSession(sessionId);
+}
+
+export function createComponent<T extends componentTypes.Union>(component: T): T {
+    return component;
+}
+
 export {
     componentTypes as components,
 };
