@@ -29,15 +29,18 @@ inter.on('line', (line) => {
 });
 
 function displayHp(entity: state.Entity): string {
-    if (entity.components.health) {
-        return ` - ${entity.components.health[0].data.hp} HP`;
+    const health = state.getComponent(entity, 'health');
+    if (health !== null) {
+        return ` - ${health.data.hp} HP`;
     }
 
     return '';
 }
 
 function displayPosition(entity: state.Entity): string {
-    if (entity.components.position) {
+    const position = state.getComponent(entity, 'position');
+    if (position !== null) {
+        // nothing yet
     }
 
     return '';
@@ -47,9 +50,13 @@ function render() {
     rl.cursorTo(process.stdout, 0, 0);
     rl.clearScreenDown(process.stdout);
 
-    const enemyEntity = state.getEntitiesWithComponents(sessionId, 'enemy status')[0];
-    const enemy = enemyEntity.components['enemy status'][0].data;
-    const enemyName = gamedata.getEnemy(enemy.dataId).name;
+    const enemyEntity = state.getEntityWithComponents(sessionId, 'enemy status');
+
+    if (enemyEntity === null) {
+        throw new Error('Missing enemy, how did this happen?');
+    }
+
+    const enemyName = gamedata.getEnemy(state.getComponent(enemyEntity, 'enemy status').data.dataId).name;
 
     console.log(`Fighting "${enemyName}"${displayHp(enemyEntity)}`);
 
@@ -58,16 +65,20 @@ function render() {
     console.log('\nParty:');
 
     for (const character of characters) {
-        const characterName = gamedata.getCharacter(character.components['character status'][0].data.dataId).name;
+        const characterName = gamedata.getCharacter(state.getComponent(character, 'character status').data.dataId).name;
 
         console.log(` - ${characterName}${displayHp(character)}${displayPosition(character)}`);
     }
 
     console.log('\n\nHand:');
 
-    const playerHand = state.getEntitiesWithComponents(sessionId, 'player status', 'hand')[0];
+    const playerHand = state.getEntityWithComponents(sessionId, 'player status', 'hand');
 
-    for (const cardId of playerHand.components.hand[0].data.cardIds) {
+    if (playerHand === null) {
+        throw new Error('Missing player hand, how did this happen?');
+    }
+
+    for (const cardId of state.getComponent(playerHand, 'hand').data.cardIds) {
         const card = gamedata.getActionCard(cardId);
 
         console.log(` - ${card.name}`);
@@ -75,7 +86,13 @@ function render() {
 }
 
 function getInput(): Promise<string> {
-    const combatStatus = state.getEntitiesWithComponents(sessionId, 'combat status')[0].components['combat status'][0];
+    const combatStatusEntity = state.getEntityWithComponents(sessionId, 'combat status');
+
+    if (combatStatusEntity === null) {
+        throw new Error('Missing combat status, how did this happen?');
+    }
+
+    const combatStatus = state.getComponent(combatStatusEntity, 'combat status');
     switch (combatStatus.data.state) {
         case 'setting up':
             inter.setPrompt('Still setting up... > ');

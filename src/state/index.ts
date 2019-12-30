@@ -61,8 +61,61 @@ export function getEntitiesWithComponents<
 export function getEntitiesWithComponents(
     sessionId: string,
     ...types: componentTypes.UnionType[]
+): Entity[];
+export function getEntitiesWithComponents(
+    sessionId: string,
+    ...types: componentTypes.UnionType[]
 ): Entity[] {
     return repository.getEntitiesWithComponents(sessionId, types);
+}
+
+export function getEntityWithComponents<T1 extends componentTypes.UnionType>(
+    sessionId: string,
+    type1: T1,
+): (Entity & WithComponent<T1>) | null;
+export function getEntityWithComponents<
+    T1 extends componentTypes.UnionType,
+    T2 extends componentTypes.UnionType
+>(
+    sessionId: string,
+    type1: T1,
+    type2: T2
+): (Entity & WithComponent<T1 | T2>) | null;
+export function getEntityWithComponents(
+    sessionId: string,
+    ...types: componentTypes.UnionType[]
+): Entity | null {
+    return getEntitiesWithComponents(sessionId, ...types)[0] || null;
+}
+
+export function getComponents<T extends componentTypes.UnionType>(
+    entity: Entity,
+    type: T,
+): readonly Component<T>[] {
+    const componentList: readonly Component<T>[] | undefined = (
+        entity.components[type] as readonly Component<T>[] | undefined
+    );
+
+    if (componentList === undefined) {
+        return [];
+    }
+
+    return componentList;
+}
+
+export function getComponent<T extends componentTypes.UnionType>(
+    entity: Entity & WithComponent<T>,
+    type: T,
+): Component<T>;
+export function getComponent<T extends componentTypes.UnionType>(
+    entity: Entity,
+    type: T,
+): Component<T> | null;
+export function getComponent<T extends componentTypes.UnionType>(
+    entity: Entity,
+    type: T,
+): Component<T> | null {
+    return getComponents(entity, type)[0] || null;
 }
 
 export {

@@ -2,6 +2,7 @@ import * as state from '../state';
 import * as database from '../database';
 import * as gamedata from '../gamedata';
 import * as decks from './decks';
+import * as damage from './damage';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -15,9 +16,14 @@ export function pendingInput(sessionId: string): null | string {
     return null;
 }
 
-export function isCardValid(sessionId: string): boolean {
-    // verify card is in hand
-    return false;
+export function isCardValid(sessionId: string, cardId: string): boolean {
+    const playerHand = state.getEntityWithComponents(sessionId, 'hand', 'player status');
+
+    if (playerHand === null) {
+        throw new Error('Not in combat.');
+    }
+
+    return state.getComponent(playerHand, 'hand').data.cardIds.includes(cardId);
 }
 
 export function beginCombat(
@@ -104,13 +110,13 @@ export function beginCombat(
     );
     // draw starting hand
     decks.draw(
-        player.components['action deck'][0],
-        player.components.hand[0],
+        state.getComponent(player, 'action deck'),
+        state.getComponent(player, 'hand'),
         1,
     );
     // wait for player action input
     state.updateComponent(
-        combatStatus.components['combat status'][0],
+        state.getComponent(combatStatus, 'combat status'),
         {
             state: 'waiting for action',
         },
@@ -122,10 +128,25 @@ export function abortCombat(sessionId: string): boolean {
     return false;
 }
 
-export function playerAttack(sessionId: string) {
+export function playerAttack(sessionId: string, cardId: string): void {
     // verify selected card is valid
+    if (!isCardValid(sessionId, cardId)) {
+        throw new Error('Card not in player\'s hand.');
+    }
     // select card for enemy defense
+    const enemyDeck = state.getEntitiesWithComponents(sessionId, 'enemy status', 'action deck');
+
+    if (enemyDeck.length !== 1) {
+        throw new Error('Combat corrupted.');
+    }
+
+    const playedCard = decks.peek(enemyDeck[0].components['action deck'][0], 1);
+
     // run damage system
+    damage.run(
+
+    );
+
     // check for player victory
     // run other related systems
     // discard selected card

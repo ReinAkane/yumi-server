@@ -46,12 +46,18 @@ export type Hand = {
     readonly cardIds: string[];
 };
 
+export const attackerType = 'attacker';
+export type Attacker = {
+    readonly type: typeof attackerType;
+    readonly baseDamage: number;
+};
+
 export type Union = CombatStatus | EnemyStatus | PlayerStatus | CharacterStatus | Health |
-ActionDeck | Position | Hand;
+ActionDeck | Position | Hand | Attacker;
 
 export type UnionType = typeof combatStatusType | typeof enemyStatusType | typeof playerStatusType |
     typeof characterStatusType | typeof healthType | typeof actionDeckType | typeof positionType |
-    typeof handType;
+    typeof handType | typeof attackerType;
 
 export type ComponentData<T extends UnionType = UnionType> =
     T extends typeof combatStatusType ? CombatStatus :
@@ -62,4 +68,5 @@ export type ComponentData<T extends UnionType = UnionType> =
                         T extends typeof actionDeckType ? ActionDeck :
                             T extends typeof positionType ? Position :
                                 T extends typeof handType ? Hand :
-                                    never;
+                                    T extends typeof attackerType ? Attacker :
+                                        never;
