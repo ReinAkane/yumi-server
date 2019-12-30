@@ -162,7 +162,27 @@ export function abortCombat(): boolean {
     return false;
 }
 
-export function playerAttack(sessionId: string, cardId: string): void {
+function endTurn(sessionId: string): void {
+    // run movement system
+    for (const character of state.getEntitiesWithComponents(sessionId, 'position')) {
+        position.advancePosition(character);
+    }
+
+    // wait for player action input
+    const combatStatus = state.getEntityWithComponents(sessionId, 'combat status');
+    if (combatStatus === null) {
+        throw new Error('Cannot end turn when not in combat.');
+    }
+
+    state.updateComponent(
+        state.getComponent(combatStatus, 'combat status'),
+        {
+            state: 'waiting for action',
+        },
+    );
+}
+
+export function playerAttack(sessionId: string, cardId: string): string | null {
     // verify selected card is valid
     const card = state.getComponentByRef(
         sessionId,
@@ -190,6 +210,9 @@ export function playerAttack(sessionId: string, cardId: string): void {
     }
 
     const defenseCardRef = decks.peek(state.getComponent(enemy, 'action deck'), 1)[0];
+    const defenseCard = defenseCardRef
+        ? state.getEntityByComponent(sessionId, state.getComponentByRef(sessionId, defenseCardRef))
+        : undefined;
 
     // run damage system
     const remainingHp = damage.run(
@@ -197,7 +220,7 @@ export function playerAttack(sessionId: string, cardId: string): void {
         state.getEntityByRef<'health' | 'attacker'>(sessionId, owner.data.owner),
         enemy,
         attackCardEntity,
-        state.getEntityByComponent(sessionId, state.getComponentByRef(sessionId, defenseCardRef)),
+        defenseCard,
     );
 
     // check for player victory
@@ -206,8 +229,25 @@ export function playerAttack(sessionId: string, cardId: string): void {
     }
     // run other related systems
     // discard selected card
+    const player = state.getEntityWithComponents(sessionId, 'hand', 'player status', 'action deck');
+
+    if (player === null) {
+        throw new Error('Not in combat.');
+    }
+
+    decks.discard(
+        state.getComponent(player, 'hand'),
+        state.getComponent(player, 'action deck'),
+        card,
+    );
 
     // end turn
+    endTurn(sessionId);
+
+    if (defenseCardRef) {
+        return defenseCardRef.id;
+    }
+    return null;
 }
 
 export function playerPrepare() {
@@ -226,9 +266,4 @@ export function playerDefend() {
     // discard selected card (if card selected)
 
     // end turn
-}
-
-export function endTurn() {
-    // run movement system
-    // wait for player action input
 }

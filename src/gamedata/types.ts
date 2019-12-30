@@ -1,4 +1,4 @@
-import * as components from '../state/components';
+import * as components from '../state/types';
 
 export type CharacterData = {
     readonly id: string;
@@ -24,13 +24,7 @@ export type EnemyData = {
 export type ActionCardData = {
     readonly id: string;
     readonly name: string;
-    readonly attackPrefab: readonly components.ComponentData[];
-    readonly defendPrefab: readonly components.ComponentData[];
-};
-
-export type PositionCardData = {
-    readonly id: string;
-    readonly name: string;
+    readonly positionDescription: string;
     readonly attackPrefab: readonly components.ComponentData[];
     readonly defendPrefab: readonly components.ComponentData[];
 };

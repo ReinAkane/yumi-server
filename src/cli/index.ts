@@ -16,6 +16,8 @@ const inter = rl.createInterface({
     prompt: ' > ',
 });
 
+const actionLog: string[] = [];
+
 let resolveNextLine: (line: string) => void = () => {};
 let nextLine: Promise<string> = new Promise((resolve) => {
     resolveNextLine = resolve;
@@ -40,6 +42,9 @@ function displayHp(entity: state.Entity): string {
 function displayPosition(entity: state.Entity): string {
     const position = state.getComponent(entity, 'position');
     if (position !== null) {
+        const currentCard = state.getComponentByRef(sessionId, position.data.currentCardRef);
+
+        return ` currently ${gamedata.getActionCard(currentCard.data.dataId).positionDescription}`;
         // nothing yet
     }
 
@@ -64,6 +69,14 @@ function displayOwner(entity: state.Entity): string {
 function render() {
     rl.cursorTo(process.stdout, 0, 0);
     rl.clearScreenDown(process.stdout);
+
+    for (let i = 0; i < 3; i += 1) {
+        const logMessage = actionLog[actionLog.length - 1 - i] || '';
+
+        console.log(logMessage);
+    }
+
+    console.log('\n');
 
     const enemyEntity = state.getEntityWithComponents(sessionId, 'enemy status');
 
@@ -93,12 +106,13 @@ function render() {
         throw new Error('Missing player hand, how did this happen?');
     }
 
-    for (const cardRef of state.getComponent(playerHand, 'hand').data.cardRefs) {
-        const card = state.getComponentByRef(sessionId, cardRef);
+    const { cardRefs } = state.getComponent(playerHand, 'hand').data;
+    for (let i = 0; i < cardRefs.length; i += 1) {
+        const card = state.getComponentByRef(sessionId, cardRefs[i]);
         const cardData = gamedata.getActionCard(card.data.dataId);
         const ownerText = displayOwner(state.getEntityByComponent(sessionId, card));
 
-        console.log(` - ${ownerText}${cardData.name}`);
+        console.log(` (${i}) - ${ownerText}${cardData.name}`);
     }
 }
 
@@ -130,13 +144,57 @@ function getInput(): Promise<string> {
     return nextLine;
 }
 
-async function play() {
-    let input;
+function handleInput(input: string): boolean {
+    const clean = input.toLowerCase();
+    console.log(`Command: "${clean}"`);
+    if (clean.startsWith('attack ')) {
+        const cardIndex = Number(clean.split(' ').pop());
+        const hand = state.getEntityWithComponents(sessionId, 'hand', 'player status');
+        if (hand === null) {
+            throw new Error('No player hand found.');
+        }
 
-    do {
-        render();
+        const ref = state.getComponent(hand, 'hand').data.cardRefs[cardIndex];
+        if (!ref) {
+            console.log(`No card at index ${cardIndex}. Try again.`);
+            return false;
+        }
+
+        const defenderCard = combat.playerAttack(sessionId, ref.id);
+
+        if (defenderCard === null) {
+            actionLog.push('Enemy took the hit!');
+        } else {
+            const defenderCardName = gamedata.getActionCard(state.getComponentByRef(
+                sessionId,
+                {
+                    id: defenderCard,
+                    type: 'action card',
+                },
+            ).data.dataId).name;
+
+            actionLog.push(`Enemy defended with ${defenderCardName}.`);
+        }
+
+        return true;
+    }
+
+    console.log('Unknown command. Try again.');
+    return false;
+}
+
+async function play() {
+    render();
+    let input = await getInput(); // eslint-disable-line no-await-in-loop
+
+    while (input !== 'q') {
+        const success = handleInput(input);
+
+        if (success) {
+            render();
+        }
         input = await getInput(); // eslint-disable-line no-await-in-loop
-    } while (input !== 'q');
+    }
 
     inter.close();
 }

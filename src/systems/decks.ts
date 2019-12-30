@@ -48,8 +48,22 @@ export function peek(from: state.Component<'action deck'>, numCards: number): st
             max: remainingCards.length - 1,
         });
 
-        peeked.push(remainingCards.splice(index, 1)[0]);
+        peeked.push(...remainingCards.splice(index, 1));
     }
 
     return peeked;
+}
+
+export function discard(from: state.Component<'hand'>, to: state.Component<'action deck'>, card: state.Component<'action card'>): void {
+    const remainingCards = from.data.cardRefs.filter((ref) => ref.id !== card.id);
+
+    state.updateComponent(from, {
+        cardRefs: remainingCards,
+    });
+
+    const deckCards = [...to.data.cardRefs, state.getComponentRef(card)];
+
+    state.updateComponent(to, {
+        cardRefs: deckCards,
+    });
 }

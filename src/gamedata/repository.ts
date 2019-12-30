@@ -1,5 +1,5 @@
 import {
-    CharacterData, EnemyData, ActionCardData, PositionCardData,
+    CharacterData, EnemyData, ActionCardData,
 } from './types';
 import * as components from '../state/types';
 
@@ -18,19 +18,19 @@ const characters: Map<string, CharacterData> = mapFromObject({
         name: 'Elf',
         maxHp: 30,
         actionCards: ['attack', 'attack', 'defend'],
-        positionCards: [['basic'], ['basic'], ['basic']],
+        positionCards: [['advance'], ['advance', 'attack'], ['attack']],
     },
     jeanne: {
         name: 'Jeanne',
         maxHp: 40,
         actionCards: ['attack', 'defend', 'defend'],
-        positionCards: [['basic'], ['basic'], ['basic']],
+        positionCards: [['advance'], ['advance', 'defend'], ['defend']],
     },
     medusa: {
         name: 'Medusa',
         maxHp: 30,
         actionCards: ['attack', 'attack', 'defend'],
-        positionCards: [['basic'], ['basic'], ['basic']],
+        positionCards: [['advance'], ['advance', 'attack'], ['attack']],
     },
 });
 
@@ -38,7 +38,7 @@ const enemies: Map<string, EnemyData> = mapFromObject({
     jotun: {
         name: 'Jotun',
         maxHp: 100,
-        actionCards: [],
+        actionCards: ['basic', 'attack', 'defend'],
         baseDamage: 10,
     },
 });
@@ -46,11 +46,13 @@ const enemies: Map<string, EnemyData> = mapFromObject({
 const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardData, 'id'>>({
     basic: {
         name: 'Blank Card',
+        positionDescription: 'idling',
         attackPrefab: [],
         defendPrefab: [],
     },
     defend: {
-        name: 'Defend 5',
+        name: 'Defend +5',
+        positionDescription: 'bracing for impact',
         attackPrefab: [],
         defendPrefab: [{
             type: components.DAMAGE_REDUCTION,
@@ -58,18 +60,17 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
         }],
     },
     attack: {
-        name: 'Attack 5',
+        name: 'Attack +5',
+        positionDescription: 'in position to attack',
         attackPrefab: [{
             type: components.BONUS_DAMAGE,
             add: 5,
         }],
         defendPrefab: [],
     },
-});
-
-const positionCards: Map<string, PositionCardData> = mapFromObject({
-    basic: {
-        name: 'Blank Position',
+    advance: {
+        name: 'Blank Card',
+        positionDescription: 'advancing',
         attackPrefab: [],
         defendPrefab: [],
     },
@@ -115,14 +116,4 @@ export function getActionCard(actionCardId: string): ActionCardData {
     }
 
     return actionCard;
-}
-
-export function getPositionCard(positionCardId: string): PositionCardData {
-    const positionCard = positionCards.get(positionCardId);
-
-    if (undefined === positionCard) {
-        throw new Error('No such position card.');
-    }
-
-    return positionCard;
 }

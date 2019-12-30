@@ -1,7 +1,7 @@
 // gamedata is the service that fetches static game data
 import * as repository from './repository';
 import {
-    EnemyData, CharacterData, ActionCardData, PositionCardData,
+    EnemyData, CharacterData, ActionCardData,
 } from './types';
 
 export function getStarterCharacterIds(): readonly string[] {
@@ -22,10 +22,6 @@ export function getCharacter(characterId: string): CharacterData {
 
 export function getActionCard(actionCardId: string): ActionCardData {
     return repository.getActionCard(actionCardId);
-}
-
-export function getPositionCard(positionCardId: string): PositionCardData {
-    return repository.getPositionCard(positionCardId);
 }
 
 export * from './types';
