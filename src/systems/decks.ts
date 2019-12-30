@@ -1,35 +1,29 @@
 import * as state from '../state';
-import * as gamedata from '../gamedata';
 import { chance } from '../chance';
+import * as cards from './cards';
 
-export function createDeck(sessionId: string, cardDataIds: readonly string[]): state.Entity & state.WithComponent<'action deck'> {
-    const cardIds: string[] = [];
+
+export function createDeck(
+    sessionId: string,
+    cardDataIds: readonly string[],
+): state.ActionDeck {
+    const cardRefs: state.ComponentRef<'action card'>[] = [];
 
     for (const cardDataId of cardDataIds) {
-        const cardData = gamedata.getActionCard(cardDataId);
-        const card = state.createEntity(
-            sessionId,
-            {
-                type: 'action card',
-            },
-            ...cardData.prefab,
-        );
+        const card = cards.createCard(sessionId, cardDataId);
 
-        cardIds.push(card.id);
+        cardRefs.push(state.getComponentRef(state.getComponent(card, 'action card')));
     }
 
-    return state.createEntity(
-        sessionId,
-        {
-            type: 'action deck',
-            cardIds,
-        },
-    );
+    return {
+        type: 'action deck',
+        cardRefs,
+    };
 }
 
 export function draw(from: state.Component<'action deck'>, to: state.Component<'hand'>, numCards: number): void {
-    const remainingCards = [...from.data.cardIds];
-    const drawnCards: string[] = [...to.data.cardIds];
+    const remainingCards = [...from.data.cardRefs];
+    const drawnCards = [...to.data.cardRefs];
 
     for (let i = 0; i < numCards; i += 1) {
         if (remainingCards.length === 0) {
@@ -44,16 +38,16 @@ export function draw(from: state.Component<'action deck'>, to: state.Component<'
     }
 
     state.updateComponent(to, {
-        cardIds: drawnCards,
+        cardRefs: drawnCards,
     });
     state.updateComponent(from, {
-        cardIds: remainingCards,
+        cardRefs: remainingCards,
     });
 }
 
-export function peek(from: state.Component<'action deck'>, numCards: number): string[] {
-    const remainingCards = [...from.data.cardIds];
-    const peeked: string[] = [];
+export function peek(from: state.Component<'action deck'>, numCards: number): state.ComponentRef<'action card'>[] {
+    const remainingCards = [...from.data.cardRefs];
+    const peeked: state.ComponentRef<'action card'>[] = [];
 
     for (let i = 0; i < numCards; i += 1) {
         if (remainingCards.length === 0) {

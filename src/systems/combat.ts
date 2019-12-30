@@ -2,6 +2,8 @@ import * as state from '../state';
 import * as database from '../database';
 import * as gamedata from '../gamedata';
 import * as decks from './decks';
+import * as position from './position';
+import * as damage from './damage';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -22,7 +24,17 @@ export function isCardValid(sessionId: string, cardId: string): boolean {
         throw new Error('Not in combat.');
     }
 
-    return state.getComponent(playerHand, 'hand').data.cardIds.includes(cardId);
+    const hand = state.getComponent(playerHand, 'hand').data.cardRefs;
+
+    for (const cardRef of hand) {
+        const card = state.getComponentByRef(sessionId, cardRef);
+
+        if (card.id === cardId) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 export function beginCombat(
@@ -50,12 +62,8 @@ export function beginCombat(
         },
     );
 
-    state.addComponents(
+    state.createEntity(
         sessionId,
-        decks.createDeck(
-            sessionId,
-            enemyData.actionCards,
-        ),
         {
             type: 'enemy status',
             dataId: enemyId,
@@ -64,14 +72,23 @@ export function beginCombat(
             type: 'health',
             hp: enemyData.maxHp,
         },
+        {
+            type: 'attacker',
+            baseDamage: enemyData.baseDamage,
+        },
+        decks.createDeck(sessionId, enemyData.actionCards),
     );
 
     const playerActionCards: string[] = [];
 
     for (const characterId of characterIds) {
         const characterData = gamedata.getCharacter(characterId);
-        state.createEntity(
+        state.addComponents(
             sessionId,
+            position.createPosition(
+                sessionId,
+                characterId,
+            ),
             {
                 type: 'character status',
                 dataId: characterId,
@@ -80,16 +97,11 @@ export function beginCombat(
                 type: 'health',
                 hp: characterData.maxHp,
             },
-            {
-                type: 'position',
-                stage: 0,
-                allCardIds: characterData.positionCards,
-            },
         );
         playerActionCards.push(...characterData.actionCards);
     }
 
-    const player = state.addComponents(
+    const player = state.createEntity(
         sessionId,
         decks.createDeck(sessionId, []),
         {
@@ -97,9 +109,10 @@ export function beginCombat(
         },
         {
             type: 'hand',
-            cardIds: [],
+            cardRefs: [],
         },
     );
+
     // draw starting hand
     decks.draw(
         state.getComponent(player, 'action deck'),
@@ -122,20 +135,46 @@ export function abortCombat(): boolean {
 
 export function playerAttack(sessionId: string, cardId: string): void {
     // verify selected card is valid
+    const card = state.getComponentByRef(
+        sessionId,
+        {
+            id: cardId,
+            type: 'action card',
+        },
+    );
+    const attackCardEntity = state.getEntityByComponent(sessionId, card);
+    const owner = state.getComponent(attackCardEntity, state.CARD_OWNER);
+
+    if (owner === null) {
+        throw new Error('Not a player card.');
+    }
+
     if (!isCardValid(sessionId, cardId)) {
         throw new Error('Card not in player\'s hand.');
     }
-    // select card for enemy defense
-    const enemyDeck = state.getEntitiesWithComponents(sessionId, 'enemy status', 'action deck');
 
-    if (enemyDeck.length !== 1) {
+    // select card for enemy defense
+    const enemy = state.getEntityWithComponents(sessionId, 'enemy status', 'action deck', 'health');
+
+    if (enemy === null) {
         throw new Error('Combat corrupted.');
     }
 
-    decks.peek(enemyDeck[0].components['action deck'][0], 1);
+    const defenseCardRef = decks.peek(state.getComponent(enemy, 'action deck'), 1)[0];
 
     // run damage system
+    const remainingHp = damage.run(
+        sessionId,
+        state.getEntityByRef<'health' | 'attacker'>(sessionId, owner.data.owner),
+        enemy,
+        attackCardEntity,
+        state.getEntityByComponent(sessionId, state.getComponentByRef(sessionId, defenseCardRef)),
+    );
+
     // check for player victory
+    if (remainingHp <= 0) {
+        // player wins
+    }
     // run other related systems
     // discard selected card
 

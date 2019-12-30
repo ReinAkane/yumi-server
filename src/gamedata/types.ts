@@ -18,15 +18,19 @@ export type EnemyData = {
     readonly name: string;
     readonly maxHp: number;
     readonly actionCards: readonly string[];
+    readonly baseDamage: number;
 };
 
 export type ActionCardData = {
     readonly id: string;
     readonly name: string;
-    readonly prefab: readonly components.ComponentData[];
+    readonly attackPrefab: readonly components.ComponentData[];
+    readonly defendPrefab: readonly components.ComponentData[];
 };
 
 export type PositionCardData = {
     readonly id: string;
     readonly name: string;
+    readonly attackPrefab: readonly components.ComponentData[];
+    readonly defendPrefab: readonly components.ComponentData[];
 };

@@ -15,42 +15,46 @@ function mapFromObject<T>(input: {[key: string]: T}): Map<string, T & {id: strin
 const characters: Map<string, CharacterData> = mapFromObject({
     elf: {
         name: 'Elf',
-        maxHp: 3,
+        maxHp: 30,
         actionCards: [],
-        positionCards: [[], [], []],
+        positionCards: [['basic'], ['basic'], ['basic']],
     },
     jeanne: {
         name: 'Jeanne',
-        maxHp: 4,
+        maxHp: 40,
         actionCards: [],
-        positionCards: [[], [], []],
+        positionCards: [['basic'], ['basic'], ['basic']],
     },
     medusa: {
         name: 'Medusa',
-        maxHp: 3,
+        maxHp: 30,
         actionCards: [],
-        positionCards: [[], [], []],
+        positionCards: [['basic'], ['basic'], ['basic']],
     },
 });
 
 const enemies: Map<string, EnemyData> = mapFromObject({
     jotun: {
         name: 'Jotun',
-        maxHp: 10,
+        maxHp: 100,
         actionCards: [],
+        baseDamage: 10,
     },
 });
 
 const actionCards: Map<string, ActionCardData> = mapFromObject({
     basic: {
         name: 'Basic Card',
-        prefab: [],
+        attackPrefab: [],
+        defendPrefab: [],
     },
 });
 
 const positionCards: Map<string, PositionCardData> = mapFromObject({
     basic: {
         name: 'Basic Position',
+        attackPrefab: [],
+        defendPrefab: [],
     },
 });
 

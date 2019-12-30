@@ -1,9 +1,7 @@
 import v4 from 'uuid/v4';
 import {
-    Entity, Component, WithComponent,
+    Entity, Component, ComponentData, UnionType,
 } from './types';
-import { ComponentData, UnionType } from './components';
-
 
 type StoredComponent<T extends UnionType = UnionType> = {
     entityId: string;
@@ -220,4 +218,20 @@ export function getEntitiesWithComponents(
     }
 
     return result;
+}
+
+export function getComponent(sessionId: string, componentId: string): Component {
+    const session = getExistingSession(sessionId);
+
+    if (!session.componentIds.has(componentId)) {
+        throw new Error('No such component.');
+    }
+
+    return getExistingComponent(componentId);
+}
+
+export function getEntityByComponent(sessionId: string, componentId: string): Entity {
+    const component = getExistingComponent(componentId);
+
+    return getEntity(sessionId, component.entityId);
 }

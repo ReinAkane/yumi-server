@@ -78,10 +78,11 @@ function render() {
         throw new Error('Missing player hand, how did this happen?');
     }
 
-    for (const cardId of state.getComponent(playerHand, 'hand').data.cardIds) {
-        const card = gamedata.getActionCard(cardId);
+    for (const cardRef of state.getComponent(playerHand, 'hand').data.cardRefs) {
+        const card = state.getComponentByRef(sessionId, cardRef);
+        const cardData = gamedata.getActionCard(card.data.dataId);
 
-        console.log(` - ${card.name}`);
+        console.log(` - ${cardData.name}`);
     }
 }
 
