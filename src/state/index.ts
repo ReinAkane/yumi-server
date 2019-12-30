@@ -1,6 +1,8 @@
 import * as componentTypes from './components';
 import * as repository from './repository';
-import { Component, Entity, WithComponent } from './types';
+import {
+    Component, Entity, WithComponent, ComponentDataType,
+} from './types';
 
 // state is the module that holds active session state such as in progress combat
 
@@ -8,9 +10,35 @@ export function openSession(accountId: string): string {
     return repository.createSession(accountId);
 }
 
+export function createEntity<C1 extends componentTypes.ComponentData>(
+    sessionId: string,
+    component1: C1,
+): Entity & WithComponent<ComponentDataType<C1>>;
+export function createEntity<
+    C1 extends componentTypes.ComponentData,
+    C2 extends componentTypes.ComponentData,
+>(
+    sessionId: string,
+    component1: C1,
+    component2: C2,
+): Entity & WithComponent<ComponentDataType<C1> | ComponentDataType<C2>>;
+export function createEntity<
+    C1 extends componentTypes.ComponentData,
+    C2 extends componentTypes.ComponentData,
+    C3 extends componentTypes.ComponentData,
+>(
+    sessionId: string,
+    component1: C1,
+    component2: C2,
+    component3: C3,
+): Entity & WithComponent<ComponentDataType<C1> | ComponentDataType<C2> | ComponentDataType<C3>>;
 export function createEntity(
     sessionId: string,
-    components: readonly componentTypes.ComponentData[],
+    ...components: readonly componentTypes.ComponentData[]
+): Entity;
+export function createEntity(
+    sessionId: string,
+    ...components: readonly componentTypes.ComponentData[]
 ): Entity {
     const id = repository.createEntity(sessionId);
 

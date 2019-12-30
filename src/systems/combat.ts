@@ -2,7 +2,6 @@ import * as state from '../state';
 import * as database from '../database';
 import * as gamedata from '../gamedata';
 import * as decks from './decks';
-import * as damage from './damage';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -12,7 +11,7 @@ export function inCombat(sessionId: string): boolean {
     return false;
 }
 
-export function pendingInput(sessionId: string): null | string {
+export function pendingInput(): null | string {
     return null;
 }
 
@@ -43,16 +42,16 @@ export function beginCombat(
     // verify enemy is valid
     const enemyData = gamedata.getEnemy(enemyId);
     // create status entities
-    const combatStatus = state.addComponent(
+    const combatStatus = state.createEntity(
         sessionId,
-        state.createEntity(sessionId, []),
         {
             type: 'combat status',
             state: 'setting up',
         },
     );
 
-    state.createEntity(sessionId, [
+    state.createEntity(
+        sessionId,
         {
             type: 'enemy status',
             dataId: enemyId,
@@ -65,13 +64,14 @@ export function beginCombat(
             type: 'action deck',
             cardIds: enemyData.actionCards,
         },
-    ]);
+    );
 
     const playerActionCards: string[] = [];
 
     for (const characterId of characterIds) {
         const characterData = gamedata.getCharacter(characterId);
-        state.createEntity(sessionId, [
+        state.createEntity(
+            sessionId,
             {
                 type: 'character status',
                 dataId: characterId,
@@ -85,24 +85,19 @@ export function beginCombat(
                 stage: 0,
                 allCardIds: characterData.positionCards,
             },
-        ]);
+        );
         playerActionCards.push(...characterData.actionCards);
     }
 
-    const player = state.addComponent(
+    const player = state.createEntity(
         sessionId,
-        state.addComponent(
-            sessionId,
-            state.createEntity(sessionId, [
-                {
-                    type: 'player status',
-                },
-            ]),
-            {
-                type: 'action deck',
-                cardIds: playerActionCards,
-            },
-        ),
+        {
+            type: 'player status',
+        },
+        {
+            type: 'action deck',
+            cardIds: playerActionCards,
+        },
         {
             type: 'hand',
             cardIds: [],
@@ -123,7 +118,7 @@ export function beginCombat(
     );
 }
 
-export function abortCombat(sessionId: string): boolean {
+export function abortCombat(): boolean {
     // ???
     return false;
 }
@@ -140,13 +135,9 @@ export function playerAttack(sessionId: string, cardId: string): void {
         throw new Error('Combat corrupted.');
     }
 
-    const playedCard = decks.peek(enemyDeck[0].components['action deck'][0], 1);
+    decks.peek(enemyDeck[0].components['action deck'][0], 1);
 
     // run damage system
-    damage.run(
-
-    );
-
     // check for player victory
     // run other related systems
     // discard selected card
@@ -154,14 +145,14 @@ export function playerAttack(sessionId: string, cardId: string): void {
     // end turn
 }
 
-export function playerPrepare(sessionId: string) {
+export function playerPrepare() {
     // verify selected cards are valid
     // discard all selected cards + draw that many + 2 new cards
     // select card for enemy to attack with
     // wait for defense input
 }
 
-export function playerDefend(sessionId: string) {
+export function playerDefend() {
     // verify selected card is valid
     // run targetting system
     // run damage system
@@ -172,7 +163,7 @@ export function playerDefend(sessionId: string) {
     // end turn
 }
 
-function endTurn(sessionId: string) {
+export function endTurn() {
     // run movement system
     // wait for player action input
 }

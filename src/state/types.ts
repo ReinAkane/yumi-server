@@ -19,6 +19,8 @@ export type WithComponent<T extends UnionType> = {
         readonly [U in T]: readonly Component<U>[]
     }
 };
+export type ComponentDataType<T extends ComponentData> = T extends {type: infer U} ?
+    U : never;
 
 export type SessionState = {
     accountId: string;
