@@ -12,4 +12,5 @@ jobs:
     - name: Run lint
       run: |
         npm ci
+        npx tsc --noEmit
         npx eslint --ext ".ts" src
