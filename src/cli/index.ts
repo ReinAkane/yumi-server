@@ -46,6 +46,21 @@ function displayPosition(entity: state.Entity): string {
     return '';
 }
 
+function displayOwner(entity: state.Entity): string {
+    const owner = state.getComponent(entity, state.CARD_OWNER);
+
+    if (owner !== null) {
+        const ownerEnt = state.getEntityByRef<never>(sessionId, owner.data.owner);
+
+        const owningCharacter = state.getComponent(ownerEnt, state.CHARACTER_STATUS);
+        if (owningCharacter !== null) {
+            return `${gamedata.getCharacter(owningCharacter.data.dataId).name}: `;
+        }
+    }
+
+    return '';
+}
+
 function render() {
     rl.cursorTo(process.stdout, 0, 0);
     rl.clearScreenDown(process.stdout);
@@ -81,8 +96,9 @@ function render() {
     for (const cardRef of state.getComponent(playerHand, 'hand').data.cardRefs) {
         const card = state.getComponentByRef(sessionId, cardRef);
         const cardData = gamedata.getActionCard(card.data.dataId);
+        const ownerText = displayOwner(state.getEntityByComponent(sessionId, card));
 
-        console.log(` - ${cardData.name}`);
+        console.log(` - ${ownerText}${cardData.name}`);
     }
 }
 

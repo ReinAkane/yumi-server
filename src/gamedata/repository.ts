@@ -1,6 +1,7 @@
 import {
     CharacterData, EnemyData, ActionCardData, PositionCardData,
 } from './types';
+import * as components from '../state/types';
 
 function mapFromObject<T>(input: {[key: string]: T}): Map<string, T & {id: string}> {
     const result = new Map<string, T & {id: string}>();
@@ -16,19 +17,19 @@ const characters: Map<string, CharacterData> = mapFromObject({
     elf: {
         name: 'Elf',
         maxHp: 30,
-        actionCards: [],
+        actionCards: ['attack', 'attack', 'defend'],
         positionCards: [['basic'], ['basic'], ['basic']],
     },
     jeanne: {
         name: 'Jeanne',
         maxHp: 40,
-        actionCards: [],
+        actionCards: ['attack', 'defend', 'defend'],
         positionCards: [['basic'], ['basic'], ['basic']],
     },
     medusa: {
         name: 'Medusa',
         maxHp: 30,
-        actionCards: [],
+        actionCards: ['attack', 'attack', 'defend'],
         positionCards: [['basic'], ['basic'], ['basic']],
     },
 });
@@ -42,17 +43,33 @@ const enemies: Map<string, EnemyData> = mapFromObject({
     },
 });
 
-const actionCards: Map<string, ActionCardData> = mapFromObject({
+const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardData, 'id'>>({
     basic: {
-        name: 'Basic Card',
+        name: 'Blank Card',
         attackPrefab: [],
+        defendPrefab: [],
+    },
+    defend: {
+        name: 'Defend 5',
+        attackPrefab: [],
+        defendPrefab: [{
+            type: components.DAMAGE_REDUCTION,
+            subtract: 5,
+        }],
+    },
+    attack: {
+        name: 'Attack 5',
+        attackPrefab: [{
+            type: components.BONUS_DAMAGE,
+            add: 5,
+        }],
         defendPrefab: [],
     },
 });
 
 const positionCards: Map<string, PositionCardData> = mapFromObject({
     basic: {
-        name: 'Basic Position',
+        name: 'Blank Position',
         attackPrefab: [],
         defendPrefab: [],
     },

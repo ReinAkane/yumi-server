@@ -271,7 +271,7 @@ export function getEntityRef(
     const withComponents: {[T in UnionType]?: true} = {};
 
     for (const type of types) {
-        if (getComponent(entity, type)) {
+        if (getComponent(entity, type) === null) {
             throw new Error('Cannot make ref of entity missing one of the requested types.');
         }
 
