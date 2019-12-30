@@ -1,20 +1,10 @@
 import * as state from '../state';
 import { chance } from '../chance';
-import * as cards from './cards';
 
 
 export function createDeck(
-    sessionId: string,
-    cardDataIds: readonly string[],
+    cardRefs: readonly state.ComponentRef<'action card'>[],
 ): state.ActionDeck {
-    const cardRefs: state.ComponentRef<'action card'>[] = [];
-
-    for (const cardDataId of cardDataIds) {
-        const card = cards.createCard(sessionId, cardDataId);
-
-        cardRefs.push(state.getComponentRef(state.getComponent(card, 'action card')));
-    }
-
     return {
         type: 'action deck',
         cardRefs,

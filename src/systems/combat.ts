@@ -4,6 +4,7 @@ import * as gamedata from '../gamedata';
 import * as decks from './decks';
 import * as position from './position';
 import * as damage from './damage';
+import * as cards from './cards';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -62,6 +63,14 @@ export function beginCombat(
         },
     );
 
+    const enemyCardRefs: state.ComponentRef<'action card'>[] = [];
+
+    for (const cardDataId of enemyData.actionCards) {
+        enemyCardRefs.push(state.getComponentRef(
+            state.getComponent(cards.createCard(sessionId, cardDataId), 'action card'),
+        ));
+    }
+
     state.createEntity(
         sessionId,
         {
@@ -76,14 +85,14 @@ export function beginCombat(
             type: 'attacker',
             baseDamage: enemyData.baseDamage,
         },
-        decks.createDeck(sessionId, enemyData.actionCards),
+        decks.createDeck(enemyCardRefs),
     );
 
-    const playerActionCards: string[] = [];
+    const playerActionCardRefs: state.ComponentRef<'action card'>[] = [];
 
     for (const characterId of characterIds) {
         const characterData = gamedata.getCharacter(characterId);
-        state.addComponents(
+        const characterEntity = state.addComponents(
             sessionId,
             position.createPosition(
                 sessionId,
@@ -97,13 +106,33 @@ export function beginCombat(
                 type: 'health',
                 hp: characterData.maxHp,
             },
+            {
+                type: 'attacker',
+                baseDamage: 1,
+            },
         );
-        playerActionCards.push(...characterData.actionCards);
+
+        for (const cardDataId of characterData.actionCards) {
+            let cardEntity = cards.createCard(sessionId, cardDataId);
+
+            cardEntity = state.addComponent(
+                sessionId,
+                cardEntity,
+                {
+                    type: state.CARD_OWNER,
+                    owner: state.getEntityRef(characterEntity, 'health', 'attacker'),
+                },
+            );
+
+            playerActionCardRefs.push(state.getComponentRef(
+                state.getComponent(cardEntity, 'action card'),
+            ));
+        }
     }
 
     const player = state.createEntity(
         sessionId,
-        decks.createDeck(sessionId, []),
+        decks.createDeck(playerActionCardRefs),
         {
             type: 'player status',
         },

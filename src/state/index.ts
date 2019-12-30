@@ -76,6 +76,19 @@ export function addComponents<
     E extends Entity,
     C1 extends ComponentData,
     C2 extends ComponentData,
+    C3 extends ComponentData
+>(
+    sessionId: string,
+    entity: E,
+    component1: C1,
+    component2: C2,
+    component3: C3,
+    ...components: readonly ComponentData[]
+): E & WithComponent<ComponentDataType<C1> | ComponentDataType<C2> | ComponentDataType<C3>>;
+export function addComponents<
+    E extends Entity,
+    C1 extends ComponentData,
+    C2 extends ComponentData,
 >(
     sessionId: string,
     entity: E,
@@ -239,6 +252,11 @@ export function getEntityByRef<T extends UnionType = never>(
     return entity as Entity & WithComponent<T>;
 }
 
+export function getEntityRef<T1 extends UnionType, T2 extends UnionType>(
+    entity: Entity & WithComponent<T1 | T2>,
+    type1: T1,
+    type2: T2
+): EntityRef & RefWithComponent<T1 | T2>;
 export function getEntityRef<T1 extends UnionType>(
     entity: Entity & WithComponent<T1>,
     type1: T1
