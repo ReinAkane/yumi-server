@@ -1,72 +1,78 @@
-export const combatStatusType = 'combat status';
+export const COMBAT_STATUS = 'combat status';
 export type CombatStatus = {
-    readonly type: typeof combatStatusType,
+    readonly type: typeof COMBAT_STATUS,
     readonly state: 'setting up' | 'waiting for action' | 'waiting for defense'
 };
 
-export const enemyStatusType = 'enemy status';
+export const ENEMY_STATUS = 'enemy status';
 export type EnemyStatus = {
-    readonly type: typeof enemyStatusType;
+    readonly type: typeof ENEMY_STATUS;
     readonly dataId: string;
 };
 
-export const playerStatusType = 'player status';
+export const PLAYER_STATUS = 'player status';
 export type PlayerStatus = {
-    readonly type: typeof playerStatusType;
+    readonly type: typeof PLAYER_STATUS;
 };
 
-export const characterStatusType = 'character status';
+export const CHARACTER_STATUS = 'character status';
 export type CharacterStatus = {
-    readonly type: typeof characterStatusType;
+    readonly type: typeof CHARACTER_STATUS;
     readonly dataId: string;
 };
 
-export const healthType = 'health';
+export const HEALTH = 'health';
 export type Health = {
-    readonly type: typeof healthType;
+    readonly type: typeof HEALTH;
     readonly hp: number;
 };
 
-export const actionDeckType = 'action deck';
+export const ACTION_DECK = 'action deck';
 export type ActionDeck = {
-    readonly type: typeof actionDeckType;
+    readonly type: typeof ACTION_DECK;
     readonly cardIds: readonly string[];
 };
 
-export const positionType = 'position';
+export const POSITION = 'position';
 export type Position = {
-    readonly type: typeof positionType;
+    readonly type: typeof POSITION;
     readonly stage: 0 | 1 | 2;
     readonly allCardIds: readonly [readonly string[], readonly string[], readonly string[]]
 };
 
-export const handType = 'hand';
+export const HAND = 'hand';
 export type Hand = {
-    readonly type: typeof handType;
+    readonly type: typeof HAND;
     readonly cardIds: string[];
 };
 
-export const attackerType = 'attacker';
+export const ATTACKER = 'attacker';
 export type Attacker = {
-    readonly type: typeof attackerType;
+    readonly type: typeof ATTACKER;
     readonly baseDamage: number;
 };
 
-export type Union = CombatStatus | EnemyStatus | PlayerStatus | CharacterStatus | Health |
-ActionDeck | Position | Hand | Attacker;
+export const ACTION_CARD = 'action card';
+export type ActionCard = {
+    readonly type: typeof ACTION_CARD;
+};
 
-export type UnionType = typeof combatStatusType | typeof enemyStatusType | typeof playerStatusType |
-    typeof characterStatusType | typeof healthType | typeof actionDeckType | typeof positionType |
-    typeof handType | typeof attackerType;
+export type Union = CombatStatus | EnemyStatus | PlayerStatus | CharacterStatus | Health |
+ActionDeck | Position | Hand | Attacker | ActionCard;
+
+export type UnionType = typeof COMBAT_STATUS | typeof ENEMY_STATUS | typeof PLAYER_STATUS |
+    typeof CHARACTER_STATUS | typeof HEALTH | typeof ACTION_DECK | typeof POSITION |
+    typeof HAND | typeof ATTACKER | typeof ACTION_CARD;
 
 export type ComponentData<T extends UnionType = UnionType> =
-    T extends typeof combatStatusType ? CombatStatus :
-        T extends typeof enemyStatusType ? EnemyStatus :
-            T extends typeof playerStatusType ? PlayerStatus :
-                T extends typeof characterStatusType ? CharacterStatus :
-                    T extends typeof healthType ? Health :
-                        T extends typeof actionDeckType ? ActionDeck :
-                            T extends typeof positionType ? Position :
-                                T extends typeof handType ? Hand :
-                                    T extends typeof attackerType ? Attacker :
-                                        never;
+    T extends typeof COMBAT_STATUS ? CombatStatus :
+        T extends typeof ENEMY_STATUS ? EnemyStatus :
+            T extends typeof PLAYER_STATUS ? PlayerStatus :
+                T extends typeof CHARACTER_STATUS ? CharacterStatus :
+                    T extends typeof HEALTH ? Health :
+                        T extends typeof ACTION_DECK ? ActionDeck :
+                            T extends typeof POSITION ? Position :
+                                T extends typeof HAND ? Hand :
+                                    T extends typeof ATTACKER ? Attacker :
+                                        T extends typeof ACTION_CARD ? ActionCard :
+                                            never;

@@ -1,3 +1,5 @@
+import * as components from '../state/components';
+
 export type CharacterData = {
     readonly id: string;
     readonly name: string;
@@ -21,6 +23,7 @@ export type EnemyData = {
 export type ActionCardData = {
     readonly id: string;
     readonly name: string;
+    readonly prefab: readonly components.ComponentData[];
 };
 
 export type PositionCardData = {

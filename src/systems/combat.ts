@@ -50,8 +50,12 @@ export function beginCombat(
         },
     );
 
-    state.createEntity(
+    state.addComponents(
         sessionId,
+        decks.createDeck(
+            sessionId,
+            enemyData.actionCards,
+        ),
         {
             type: 'enemy status',
             dataId: enemyId,
@@ -59,10 +63,6 @@ export function beginCombat(
         {
             type: 'health',
             hp: enemyData.maxHp,
-        },
-        {
-            type: 'action deck',
-            cardIds: enemyData.actionCards,
         },
     );
 
@@ -89,14 +89,11 @@ export function beginCombat(
         playerActionCards.push(...characterData.actionCards);
     }
 
-    const player = state.createEntity(
+    const player = state.addComponents(
         sessionId,
+        decks.createDeck(sessionId, []),
         {
             type: 'player status',
-        },
-        {
-            type: 'action deck',
-            cardIds: playerActionCards,
         },
         {
             type: 'hand',

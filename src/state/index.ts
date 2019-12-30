@@ -10,18 +10,6 @@ export function openSession(accountId: string): string {
     return repository.createSession(accountId);
 }
 
-export function createEntity<C1 extends componentTypes.ComponentData>(
-    sessionId: string,
-    component1: C1,
-): Entity & WithComponent<ComponentDataType<C1>>;
-export function createEntity<
-    C1 extends componentTypes.ComponentData,
-    C2 extends componentTypes.ComponentData,
->(
-    sessionId: string,
-    component1: C1,
-    component2: C2,
-): Entity & WithComponent<ComponentDataType<C1> | ComponentDataType<C2>>;
 export function createEntity<
     C1 extends componentTypes.ComponentData,
     C2 extends componentTypes.ComponentData,
@@ -31,7 +19,22 @@ export function createEntity<
     component1: C1,
     component2: C2,
     component3: C3,
+    ...components: componentTypes.ComponentData[]
 ): Entity & WithComponent<ComponentDataType<C1> | ComponentDataType<C2> | ComponentDataType<C3>>;
+export function createEntity<
+    C1 extends componentTypes.ComponentData,
+    C2 extends componentTypes.ComponentData,
+>(
+    sessionId: string,
+    component1: C1,
+    component2: C2,
+    ...components: componentTypes.ComponentData[]
+): Entity & WithComponent<ComponentDataType<C1> | ComponentDataType<C2>>;
+export function createEntity<C1 extends componentTypes.ComponentData>(
+    sessionId: string,
+    component1: C1,
+    ...components: componentTypes.ComponentData[]
+): Entity & WithComponent<ComponentDataType<C1>>;
 export function createEntity(
     sessionId: string,
     ...components: readonly componentTypes.ComponentData[]
@@ -57,6 +60,37 @@ export function addComponent<T extends componentTypes.UnionType, E extends Entit
     repository.addComponent(sessionId, entity.id, component);
 
     return repository.getEntity(sessionId, entity.id) as E & WithComponent<T>;
+}
+
+export function addComponents<
+    E extends Entity,
+    C1 extends componentTypes.ComponentData,
+    C2 extends componentTypes.ComponentData,
+>(
+    sessionId: string,
+    entity: E,
+    component1: C1,
+    component2: C2,
+    ...components: readonly componentTypes.ComponentData[]
+): E & WithComponent<ComponentDataType<C1> | ComponentDataType<C2>>;
+export function addComponents<
+    E extends Entity,
+    C1 extends componentTypes.ComponentData,
+>(
+    sessionId: string,
+    entity: E,
+    component1: C1,
+    ...components: readonly componentTypes.ComponentData[]
+): E & WithComponent<ComponentDataType<C1>>;
+export function addComponents<E extends Entity>(
+    sessionId: string,
+    entity: E,
+    ...components: readonly componentTypes.ComponentData[]
+): E {
+    return components.reduce(
+        (result, component) => addComponent(sessionId, result, component),
+        entity,
+    );
 }
 
 export function hasComponentOfType(sessionId: string, type: componentTypes.UnionType): boolean {

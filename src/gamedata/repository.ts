@@ -44,6 +44,7 @@ const enemies: Map<string, EnemyData> = mapFromObject({
 const actionCards: Map<string, ActionCardData> = mapFromObject({
     basic: {
         name: 'Basic Card',
+        prefab: [],
     },
 });
 
