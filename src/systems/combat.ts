@@ -183,6 +183,12 @@ function endTurn(sessionId: string): void {
 }
 
 export function playerAttack(sessionId: string, cardId: string): string | null {
+    // verify state
+    const combatStatus = state.getEntityWithComponents(sessionId, 'combat status');
+    if (combatStatus === null || state.getComponent(combatStatus, 'combat status').data.state !== 'waiting for action') {
+        throw new Error('Cannot start player attack.');
+    }
+
     // verify selected card is valid
     const card = state.getComponentByRef(
         sessionId,
