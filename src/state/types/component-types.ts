@@ -14,11 +14,13 @@ export const CARD_OWNER = 'card owner';
 export const THREAT = 'action - threat';
 export const TAUNT = 'action - taunt';
 export const RAGE = 'action - rage';
+export const RETALIATE = 'action - retaliate';
 
 export type UnionType = typeof COMBAT_STATUS | typeof ENEMY_STATUS | typeof PLAYER_STATUS |
     typeof CHARACTER_STATUS | typeof HEALTH | typeof ACTION_DECK | typeof POSITION |
     typeof HAND | typeof ATTACKER | typeof ACTION_CARD | typeof BONUS_DAMAGE |
-    typeof DAMAGE_REDUCTION | typeof CARD_OWNER | typeof THREAT | typeof TAUNT | typeof RAGE;
+    typeof DAMAGE_REDUCTION | typeof CARD_OWNER | typeof THREAT | typeof TAUNT | typeof RAGE |
+    typeof RETALIATE;
 
 export const ALL_TYPES: UnionType[] = [
     COMBAT_STATUS,
@@ -37,4 +39,5 @@ export const ALL_TYPES: UnionType[] = [
     THREAT,
     TAUNT,
     RAGE,
+    RETALIATE,
 ];

@@ -3,7 +3,7 @@ import * as database from '../database';
 import * as gamedata from '../gamedata';
 import * as decks from './decks';
 import * as position from './position';
-import * as damage from './damage';
+import * as attack from './attack';
 import * as cards from './cards';
 import * as targetting from './targetting';
 
@@ -226,7 +226,7 @@ export function playerAttack(sessionId: string, cardId: string): string | null {
         : undefined;
 
     // run damage system
-    const remainingHp = damage.run(
+    attack.run(
         sessionId,
         state.getEntityByRef<'health' | 'attacker'>(sessionId, owner.data.owner),
         enemy,
@@ -235,9 +235,7 @@ export function playerAttack(sessionId: string, cardId: string): string | null {
     );
 
     // check for player victory
-    if (remainingHp <= 0) {
-        // player wins
-    }
+    // player wins
     // run other related systems
     // discard selected card
     const player = state.getEntityWithComponents(sessionId, 'hand', 'player status', 'action deck');
@@ -364,7 +362,7 @@ export function playerDefend(sessionId: string, defendCardId: string | null): st
         throw new Error('Combat corrupted');
     }
 
-    const remainingHp = damage.run(
+    attack.run(
         sessionId,
         enemy,
         target,
@@ -373,9 +371,7 @@ export function playerDefend(sessionId: string, defendCardId: string | null): st
     );
 
     // check for player defeat
-    if (remainingHp <= 0) {
-        // check each player character with HP
-    }
+    // check each player character with HP
     // run other related systems
     // discard selected card (if card selected)
     if (defenseCard) {

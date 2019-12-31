@@ -91,9 +91,13 @@ export type Rage = {
     readonly tauntMultiplier: number;
 };
 
+export type Retaliate = {
+    readonly type: typeof types.RETALIATE;
+};
+
 export type Union = CombatStatus | EnemyStatus | PlayerStatus | CharacterStatus | Health |
 ActionDeck | Position | Hand | Attacker | ActionCard | BonusDamage | DamageReduction | CardOwner |
-Threat | Taunt | Rage;
+Threat | Taunt | Rage | Retaliate;
 
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
@@ -113,5 +117,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.THREAT ? Threat :
     T extends typeof types.TAUNT ? Taunt :
     T extends typeof types.RAGE ? Rage :
+    T extends typeof types.RETALIATE ? Retaliate :
     never;
 /* eslint-enable @typescript-eslint/indent */

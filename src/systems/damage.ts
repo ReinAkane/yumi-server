@@ -24,12 +24,10 @@ function getActionCardFromPosition(sessionId: string, position: state.Component<
     return state.getComponentByRef(sessionId, position.data.currentCardRef);
 }
 
-function buildParticipatingCardList(
+function buildAttackerCardList(
     sessionId: string,
-    attacker: state.Entity & state.WithComponent<'attacker'>,
-    defender: state.Entity & state.WithComponent<'health'>,
-    attackCard: state.Entity & state.WithComponent<'action card'>,
-    defendCard?: state.Entity & state.WithComponent<'action card'>,
+    attacker: state.Entity,
+    attackCard: state.Entity,
 ): readonly state.Entity[] {
     const cards: state.Entity[] = [];
 
@@ -41,6 +39,18 @@ function buildParticipatingCardList(
         cards.push(state.getEntityByRef<never>(sessionId, actionCard.data.attackRef));
     }
 
+    cards.push(attackCard);
+
+    return cards;
+}
+
+function buildDefenderCardList(
+    sessionId: string,
+    defender: state.Entity & state.WithComponent<'health'>,
+    defendCard?: state.Entity,
+): readonly state.Entity[] {
+    const cards: state.Entity[] = [];
+
     const defenderPosition = state.getComponent(defender, 'position');
 
     if (defenderPosition !== null) {
@@ -49,9 +59,8 @@ function buildParticipatingCardList(
         cards.push(state.getEntityByRef<never>(sessionId, actionCard.data.defendRef));
     }
 
-    cards.push(state.getEntityByRef<never>(sessionId, state.getComponent(attackCard, 'action card').data.attackRef));
     if (defendCard !== undefined) {
-        cards.push(state.getEntityByRef<never>(sessionId, state.getComponent(defendCard, 'action card').data.defendRef));
+        cards.push(defendCard);
     }
 
     return cards;
@@ -61,22 +70,25 @@ export function run(
     sessionId: string,
     attacker: state.Entity & state.WithComponent<'attacker'>,
     defender: state.Entity & state.WithComponent<'health'>,
-    attackCard: state.Entity & state.WithComponent<'action card'>,
-    defendCard?: state.Entity & state.WithComponent<'action card'>,
+    attackCard: state.Entity,
+    defendCard?: state.Entity,
 ): number {
-    const cards = buildParticipatingCardList(
+    const attackerCards = buildAttackerCardList(
         sessionId,
         attacker,
-        defender,
         attackCard,
+    );
+    const defenderCards = buildDefenderCardList(
+        sessionId,
+        defender,
         defendCard,
     );
 
-    const maximumDamage = cards.reduce(
+    const maximumDamage = attackerCards.reduce(
         applyBonusDamage,
         state.getComponent(attacker, 'attacker').data.baseDamage - state.getComponent(defender, 'health').data.baseArmor,
     );
-    const netDamage = Math.max(0, cards.reduce(applyDamageReduction, maximumDamage));
+    const netDamage = Math.max(0, defenderCards.reduce(applyDamageReduction, maximumDamage));
 
     let health = state.getComponent(defender, 'health');
 

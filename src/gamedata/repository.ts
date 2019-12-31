@@ -25,7 +25,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
     jeanne: {
         name: 'Jeanne',
         maxHp: 40,
-        actionCards: ['attack', 'defend', 'defend'],
+        actionCards: ['attack', 'defend', 'vengeance'],
         positionCards: [['advance'], ['advance', 'defend'], ['defend', 'defend', 'basic']],
         baseDamage: 3,
         baseArmor: 2,
@@ -44,7 +44,7 @@ const enemies: Map<string, EnemyData> = mapFromObject({
     jotun: {
         name: 'Jotun',
         maxHp: 100,
-        actionCards: ['basic', 'attack', 'defend'],
+        actionCards: ['basic', 'attack', 'defend', 'vengeance'],
         baseDamage: 10,
         baseArmor: 0,
     },
@@ -98,6 +98,24 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
         positionDescription: 'advancing',
         attackPrefab: [],
         defendPrefab: [],
+    },
+    vengeance: {
+        name: 'Retaliate',
+        positionDescription: 'parrying',
+        attackPrefab: [],
+        defendPrefab: [
+            {
+                type: components.BONUS_DAMAGE,
+                add: -5,
+            },
+            {
+                type: components.RETALIATE,
+            },
+            {
+                type: components.TAUNT,
+                modifier: 0.5,
+            },
+        ],
     },
 });
 
