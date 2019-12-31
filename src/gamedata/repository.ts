@@ -19,18 +19,21 @@ const characters: Map<string, CharacterData> = mapFromObject({
         maxHp: 30,
         actionCards: ['attack', 'attack', 'defend'],
         positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
+        baseDamage: 5,
     },
     jeanne: {
         name: 'Jeanne',
         maxHp: 40,
         actionCards: ['attack', 'defend', 'defend'],
         positionCards: [['advance'], ['advance', 'defend'], ['defend', 'defend', 'basic']],
+        baseDamage: 3,
     },
     medusa: {
         name: 'Medusa',
         maxHp: 30,
         actionCards: ['attack', 'attack', 'defend'],
         positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
+        baseDamage: 5,
     },
 });
 

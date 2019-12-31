@@ -110,7 +110,7 @@ export function beginCombat(
             },
             {
                 type: 'attacker',
-                baseDamage: 1,
+                baseDamage: characterData.baseDamage,
             },
         );
 
