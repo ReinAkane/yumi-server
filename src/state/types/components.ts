@@ -4,6 +4,7 @@ import * as types from './component-types';
 export type CombatStatus = {
     readonly type: typeof types.COMBAT_STATUS,
     readonly state: 'setting up' | 'waiting for action' | 'waiting for defense'
+    readonly pendingEnemyAttack: ComponentRef<'action card'> | null;
 };
 
 export type EnemyStatus = {
@@ -74,8 +75,24 @@ export type CardOwner = {
     readonly owner: EntityRef & RefWithComponent<'health' | 'attacker'>;
 };
 
+export type Threat = {
+    readonly type: typeof types.THREAT;
+    readonly modifier: number;
+};
+
+export type Taunt = {
+    readonly type: typeof types.TAUNT;
+    readonly modifier: number;
+};
+
+export type Rage = {
+    readonly type: typeof types.RAGE;
+    readonly tauntMultiplier: number;
+};
+
 export type Union = CombatStatus | EnemyStatus | PlayerStatus | CharacterStatus | Health |
-ActionDeck | Position | Hand | Attacker | ActionCard | BonusDamage | DamageReduction | CardOwner;
+ActionDeck | Position | Hand | Attacker | ActionCard | BonusDamage | DamageReduction | CardOwner |
+Threat | Taunt | Rage;
 
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
@@ -92,5 +109,8 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.BONUS_DAMAGE ? BonusDamage :
     T extends typeof types.DAMAGE_REDUCTION ? DamageReduction :
     T extends typeof types.CARD_OWNER ? CardOwner :
+    T extends typeof types.THREAT ? Threat :
+    T extends typeof types.TAUNT ? Taunt :
+    T extends typeof types.RAGE ? Rage :
     never;
 /* eslint-enable @typescript-eslint/indent */

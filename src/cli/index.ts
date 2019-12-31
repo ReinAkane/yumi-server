@@ -66,17 +66,30 @@ function displayOwner(entity: state.Entity): string {
     return '';
 }
 
+function displayCardName(cardRef: state.ComponentRef<'action card'>): string {
+    const card = state.getComponentByRef(sessionId, cardRef);
+    const cardData = gamedata.getActionCard(card.data.dataId);
+    const ownerText = displayOwner(state.getEntityByComponent(sessionId, card));
+
+    return `${ownerText}${cardData.name}`;
+}
+
 function render() {
     rl.cursorTo(process.stdout, 0, 0);
     rl.clearScreenDown(process.stdout);
 
-    for (let i = 0; i < 3; i += 1) {
-        const logMessage = actionLog[actionLog.length - 1 - i] || '';
+    for (let i = 3; i >= 0; i -= 1) {
+        const index = actionLog.length - 1 - i;
+        const logMessage = actionLog[index];
 
-        console.log(logMessage);
+        if (logMessage) {
+            console.log(`${(`0${index + 1}`).slice(-2)}: ${logMessage}`);
+        } else {
+            console.log('');
+        }
     }
 
-    console.log('\n');
+    console.log('');
 
     const enemyEntity = state.getEntityWithComponents(sessionId, 'enemy status');
 
@@ -108,11 +121,7 @@ function render() {
 
     const { cardRefs } = state.getComponent(playerHand, 'hand').data;
     for (let i = 0; i < cardRefs.length; i += 1) {
-        const card = state.getComponentByRef(sessionId, cardRefs[i]);
-        const cardData = gamedata.getActionCard(card.data.dataId);
-        const ownerText = displayOwner(state.getEntityByComponent(sessionId, card));
-
-        console.log(` (${i}) - ${ownerText}${cardData.name}`);
+        console.log(` (${i}) - ${displayCardName(cardRefs[i])}`);
     }
 }
 
@@ -129,10 +138,10 @@ function getInput(): Promise<string> {
             inter.setPrompt('Still setting up... > ');
             break;
         case 'waiting for action':
-            inter.setPrompt('What do you want to do? > ');
+            inter.setPrompt('What do you want to do?\n  (\n    "attack <card to attack with>" or \n    "prepare <card to discard, card to discard, card to discard...>"\n  ) > ');
             break;
         case 'waiting for defense':
-            inter.setPrompt('What do you want to defend with? > ');
+            inter.setPrompt('What do you want to defend with?\n  ("none" or "defend <card to defend with>") > ');
             break;
         default:
             inter.setPrompt('Something went wrong... > ');
@@ -144,36 +153,128 @@ function getInput(): Promise<string> {
     return nextLine;
 }
 
-function handleInput(input: string): boolean {
-    const clean = input.toLowerCase();
-    console.log(`Command: "${clean}"`);
-    if (clean.startsWith('attack ')) {
-        const cardIndex = Number(clean.split(' ').pop());
-        const hand = state.getEntityWithComponents(sessionId, 'hand', 'player status');
-        if (hand === null) {
-            throw new Error('No player hand found.');
-        }
+function getCardByIndex(input: number): state.ComponentRef<'action card'> | null {
+    const hand = state.getEntityWithComponents(sessionId, 'hand', 'player status');
+    if (hand === null) {
+        throw new Error('No player hand found.');
+    }
 
-        const ref = state.getComponent(hand, 'hand').data.cardRefs[cardIndex];
-        if (!ref) {
-            console.log(`No card at index ${cardIndex}. Try again.`);
+    const ref = state.getComponent(hand, 'hand').data.cardRefs[input];
+    if (!ref) {
+        console.log(`No card at index ${input}. Try again.`);
+        return null;
+    }
+    return ref;
+}
+
+function handleAttackInput(input: string): boolean {
+    const cardIndex = Number(input.split(' ').pop());
+    const ref = getCardByIndex(cardIndex);
+
+    if (ref === null) {
+        return false;
+    }
+
+    const defenderCard = combat.playerAttack(sessionId, ref.id);
+
+    if (defenderCard === null) {
+        actionLog.push(`Player attacked with "${displayCardName(ref)}" and the enemy took the hit!`);
+    } else {
+        const defenderRef: state.ComponentRef<'action card'> = {
+            id: defenderCard,
+            type: 'action card',
+        };
+
+        actionLog.push(`Player attacked with "${displayCardName(ref)}" and the enemy defended with "${displayCardName(defenderRef)}".`);
+    }
+
+    return true;
+}
+
+function handleActionInput(input: string): boolean {
+    const clean = input.toLowerCase();
+    if (clean.startsWith('attack ')) {
+        return handleAttackInput(input);
+    }
+    if (clean.startsWith('prepare')) {
+        const cardsToDiscard = input.split(/,? /g).slice(1);
+        actionLog.push(`Player took time to prepare, recycling ${cardsToDiscard.length} cards.`);
+        const cardIdsToDiscard: string[] = [];
+
+        for (const index of cardsToDiscard) {
+            const cardRef = getCardByIndex(Number(index));
+
+            if (cardRef === null) {
+                return false;
+            }
+
+            cardIdsToDiscard.push(cardRef.id);
+        }
+        const enemyAttack = combat.playerPrepare(sessionId, cardIdsToDiscard);
+        if (enemyAttack !== null) {
+            const enemyAttackRef: state.ComponentRef<'action card'> = {
+                id: enemyAttack,
+                type: 'action card',
+            };
+
+            actionLog.push(`The enemy took this opportunity to attack with ${displayCardName(enemyAttackRef)}!`);
+        }
+        return true;
+    }
+
+    console.log('Unknown command. Try again.');
+    return false;
+}
+
+function handleDefenseInput(input: string): boolean {
+    const clean = input.toLowerCase();
+
+    if (clean.startsWith('none')) {
+        const defenderId = combat.playerDefend(sessionId, null);
+        const defender = state.getComponentByRef(sessionId, {
+            id: defenderId,
+            type: 'character status',
+        });
+        actionLog.push(`${gamedata.getCharacter(defender.data.dataId).name} took the hit!`);
+
+        return true;
+    }
+    if (clean.startsWith('defend ')) {
+        const cardIndex = Number(input.split(' ').pop());
+        const ref = getCardByIndex(cardIndex);
+
+        if (ref === null) {
             return false;
         }
 
-        const defenderCard = combat.playerAttack(sessionId, ref.id);
+        const defenderId = combat.playerDefend(sessionId, ref.id);
 
-        if (defenderCard === null) {
-            actionLog.push('Enemy took the hit!');
-        } else {
-            const defenderCardName = gamedata.getActionCard(state.getComponentByRef(
+        const owner = state.getComponent(
+            state.getEntityByComponent(
                 sessionId,
-                {
-                    id: defenderCard,
-                    type: 'action card',
-                },
-            ).data.dataId).name;
+                state.getComponentByRef(sessionId, ref),
+            ),
+            state.CARD_OWNER,
+        );
 
-            actionLog.push(`Enemy defended with ${defenderCardName}.`);
+        let ownerId: string | null | undefined = null;
+
+        if (owner) {
+            ownerId = state.getComponent(
+                state.getEntityByRef<never>(sessionId, owner.data.owner),
+                'character status',
+            )?.id;
+        }
+
+        const defender = state.getComponentByRef(sessionId, {
+            id: defenderId,
+            type: 'character status',
+        });
+
+        if (!ownerId || defenderId === ownerId) {
+            actionLog.push(`${gamedata.getCharacter(defender.data.dataId).name} defended with ${displayCardName(ref)}.`);
+        } else {
+            actionLog.push(`${gamedata.getCharacter(defender.data.dataId).name} took the hit!`);
         }
 
         return true;
@@ -181,6 +282,20 @@ function handleInput(input: string): boolean {
 
     console.log('Unknown command. Try again.');
     return false;
+}
+
+function handleInput(input: string): boolean {
+    const combatStatus = state.getEntityWithComponents(sessionId, 'combat status');
+
+    if (combatStatus === null) {
+        throw new Error('Combat corrupted.');
+    }
+
+    switch (state.getComponent(combatStatus, 'combat status').data.state) {
+        case 'waiting for action': return handleActionInput(input);
+        case 'waiting for defense': return handleDefenseInput(input);
+        default: return true;
+    }
 }
 
 async function play() {

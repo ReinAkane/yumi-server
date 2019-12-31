@@ -5,6 +5,7 @@ import * as decks from './decks';
 import * as position from './position';
 import * as damage from './damage';
 import * as cards from './cards';
+import * as targetting from './targetting';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -60,6 +61,7 @@ export function beginCombat(
         {
             type: 'combat status',
             state: 'setting up',
+            pendingEnemyAttack: null,
         },
     );
 
@@ -178,6 +180,7 @@ function endTurn(sessionId: string): void {
         state.getComponent(combatStatus, 'combat status'),
         {
             state: 'waiting for action',
+            pendingEnemyAttack: null,
         },
     );
 }
@@ -256,20 +259,135 @@ export function playerAttack(sessionId: string, cardId: string): string | null {
     return null;
 }
 
-export function playerPrepare() {
+export function playerPrepare(sessionId: string, cardIds: string[]): string | null {
     // verify selected cards are valid
+    for (const cardId of cardIds) {
+        if (!isCardValid(sessionId, cardId)) {
+            throw new Error('Card not in player\'s hand.');
+        }
+    }
     // discard all selected cards + draw that many + 2 new cards
+    const player = state.getEntityWithComponents(sessionId, 'player status', 'hand', 'action deck');
+
+    if (player === null) {
+        throw new Error('Not in combat.');
+    }
+    const hand = state.getComponent(player, 'hand');
+    const playerDeck = state.getComponent(player, 'action deck');
+
+    for (const cardId of cardIds) {
+        decks.discard(
+            state.refreshComponent(sessionId, hand),
+            state.refreshComponent(sessionId, playerDeck),
+            state.getComponentByRef(sessionId, {
+                id: cardId,
+                type: 'action card',
+            }),
+        );
+    }
+
+    decks.draw(
+        state.refreshComponent(sessionId, playerDeck),
+        state.refreshComponent(sessionId, hand),
+        cardIds.length + 2,
+    );
+
     // select card for enemy to attack with
-    // wait for defense input
+    const enemy = state.getEntityWithComponents(sessionId, 'enemy status', 'action deck');
+
+    if (enemy === null) {
+        throw new Error('Combat corrupted.');
+    }
+    const attackRef = decks.peek(state.getComponent(enemy, 'action deck'), 1)[0];
+
+    if (attackRef) {
+        // wait for defense input
+        const combatStatus = state.getEntityWithComponents(sessionId, 'combat status');
+
+        if (combatStatus === null) {
+            throw new Error('Combat corrupted.');
+        }
+
+        state.updateComponent(state.getComponent(combatStatus, 'combat status'), {
+            state: 'waiting for defense',
+            pendingEnemyAttack: attackRef,
+        });
+
+        return attackRef.id;
+    }
+
+    endTurn(sessionId);
+    return null;
 }
 
-export function playerDefend() {
+export function playerDefend(sessionId: string, defendCardId: string | null): string {
+    const combatStatus = state.getEntityWithComponents(sessionId, 'combat status');
+
+    if (combatStatus === null) {
+        throw new Error('Not in combat.');
+    }
+
+    const attackCardRef = state.getComponent(combatStatus, 'combat status').data.pendingEnemyAttack;
+
+    if (attackCardRef === null) {
+        throw new Error('No pending enemy attack.');
+    }
+
     // verify selected card is valid
+    let defenseCard = null;
+
+    if (defendCardId !== null) {
+        defenseCard = state.getComponentByRef(sessionId, {
+            id: defendCardId,
+            type: 'action card',
+        });
+    }
+
     // run targetting system
+    const attackCard = state.getComponentByRef(sessionId, attackCardRef);
+    const target = targetting.selectTarget(sessionId, attackCard, defenseCard);
+
     // run damage system
+    let defenseEntity: state.Entity & state.WithComponent<'action card'> | undefined;
+    if (defenseCard && state.getComponent(
+        state.getEntityByComponent(sessionId, defenseCard),
+        state.CARD_OWNER,
+    )?.data.owner.id === target.id) {
+        defenseEntity = state.getEntityByComponent(sessionId, defenseCard);
+    }
+
+    const enemy = state.getEntityWithComponents(sessionId, 'enemy status', 'attacker');
+
+    if (enemy === null) {
+        throw new Error('Combat corrupted');
+    }
+
+    const remainingHp = damage.run(
+        sessionId,
+        enemy,
+        target,
+        state.getEntityByComponent(sessionId, attackCard),
+        defenseEntity,
+    );
+
     // check for player defeat
+    if (remainingHp <= 0) {
+        // check each player character with HP
+    }
     // run other related systems
     // discard selected card (if card selected)
+    if (defenseCard) {
+        const player = state.getEntityWithComponents(sessionId, 'player status', 'hand', 'action deck');
+
+        if (player === null) {
+            throw new Error('Combat corrupted.');
+        }
+
+        decks.discard(state.getComponent(player, 'hand'), state.getComponent(player, 'action deck'), defenseCard);
+    }
 
     // end turn
+    endTurn(sessionId);
+
+    return state.getComponent(target, 'character status').id;
 }

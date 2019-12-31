@@ -18,19 +18,19 @@ const characters: Map<string, CharacterData> = mapFromObject({
         name: 'Elf',
         maxHp: 30,
         actionCards: ['attack', 'attack', 'defend'],
-        positionCards: [['advance'], ['advance', 'attack'], ['attack']],
+        positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
     },
     jeanne: {
         name: 'Jeanne',
         maxHp: 40,
         actionCards: ['attack', 'defend', 'defend'],
-        positionCards: [['advance'], ['advance', 'defend'], ['defend']],
+        positionCards: [['advance'], ['advance', 'defend'], ['defend', 'defend', 'basic']],
     },
     medusa: {
         name: 'Medusa',
         maxHp: 30,
         actionCards: ['attack', 'attack', 'defend'],
-        positionCards: [['advance'], ['advance', 'attack'], ['attack']],
+        positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
     },
 });
 
@@ -53,20 +53,38 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
     defend: {
         name: 'Defend +5',
         positionDescription: 'bracing for impact',
-        attackPrefab: [],
-        defendPrefab: [{
-            type: components.DAMAGE_REDUCTION,
-            subtract: 5,
+        attackPrefab: [{
+            type: components.RAGE,
+            tauntMultiplier: 0.5,
         }],
+        defendPrefab: [
+            {
+                type: components.DAMAGE_REDUCTION,
+                subtract: 5,
+            },
+            {
+                type: components.TAUNT,
+                modifier: 1,
+            },
+        ],
     },
     attack: {
         name: 'Attack +5',
         positionDescription: 'in position to attack',
-        attackPrefab: [{
-            type: components.BONUS_DAMAGE,
-            add: 5,
+        attackPrefab: [
+            {
+                type: components.BONUS_DAMAGE,
+                add: 5,
+            },
+            {
+                type: components.RAGE,
+                tauntMultiplier: 1.5,
+            },
+        ],
+        defendPrefab: [{
+            type: components.THREAT,
+            modifier: 1,
         }],
-        defendPrefab: [],
     },
     advance: {
         name: 'Blank Card',

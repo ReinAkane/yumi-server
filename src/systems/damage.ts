@@ -73,7 +73,7 @@ export function run(
     );
 
     const maximumDamage = cards.reduce(applyBonusDamage, state.getComponent(attacker, 'attacker').data.baseDamage);
-    const netDamage = cards.reduce(applyDamageReduction, maximumDamage);
+    const netDamage = Math.max(0, cards.reduce(applyDamageReduction, maximumDamage));
 
     let health = state.getComponent(defender, 'health');
 

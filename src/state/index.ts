@@ -294,4 +294,14 @@ export function getEntityByComponent<T extends Component>(
     ) as Entity & WithComponent<ComponentType<T>>;
 }
 
+export function refreshComponent<T extends UnionType>(
+    sessionId: string,
+    component: Component<T>,
+): Component<T> {
+    return getComponentByRef(sessionId, {
+        id: component.id,
+        type: component.data.type,
+    });
+}
+
 export * from './types';
