@@ -1,0 +1,9 @@
+{
+    "extends": "../.eslintrc",
+    "globals": {
+        "describe": "readonly",
+        "it": "readonly",
+        "beforeEach": "readonly",
+        "afterEach": "readonly"
+    }
+}

@@ -79,3 +79,11 @@ export function accountExists(accountId: string): boolean {
 export function hasCharacter(accountId: string, characterDataId: string): boolean {
     return getExistingAccount(accountId).characters.has(characterDataId);
 }
+
+export function hasDemon(accountId: string, demonDataId: string): boolean {
+    return getExistingAccount(accountId).demons.has(demonDataId);
+}
+
+export function reset(): void {
+    accounts.clear();
+}

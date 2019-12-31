@@ -119,7 +119,7 @@ export function beginCombat(
         for (const cardDataId of characterData.actionCards) {
             let cardEntity = cards.createCard(sessionId, cardDataId);
 
-            cardEntity = state.addComponent(
+            cardEntity = state.addComponents(
                 sessionId,
                 cardEntity,
                 {

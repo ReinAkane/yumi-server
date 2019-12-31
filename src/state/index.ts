@@ -62,7 +62,7 @@ export function createEntity(
     return repository.getEntity(sessionId, id);
 }
 
-export function addComponent<T extends UnionType, E extends Entity>(
+function addComponent<T extends UnionType, E extends Entity>(
     sessionId: string,
     entity: E,
     component: ComponentData<T>,

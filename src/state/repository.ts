@@ -29,6 +29,13 @@ const entities = new Map<string, StoredEntity>();
 const components = new Map<string, StoredComponent>();
 const accountToSession = new Map<string, string>();
 
+export function reset(): void {
+    sessions.clear();
+    entities.clear();
+    components.clear();
+    accountToSession.clear();
+}
+
 function getExistingComponent(componentId: string): StoredComponent {
     const component = components.get(componentId);
 
@@ -227,7 +234,7 @@ export function getComponent(sessionId: string, componentId: string): Component 
         throw new Error('No such component.');
     }
 
-    return getExistingComponent(componentId);
+    return mapComponent(getExistingComponent(componentId));
 }
 
 export function getEntityByComponent(sessionId: string, componentId: string): Entity {

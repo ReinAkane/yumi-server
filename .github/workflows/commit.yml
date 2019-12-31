@@ -9,8 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Run lint
+    - name: Verify
       run: |
         npm ci
-        npx tsc --noEmit
-        npx eslint --ext ".ts" src
+        npm run verify
