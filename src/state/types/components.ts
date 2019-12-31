@@ -24,6 +24,7 @@ export type CharacterStatus = {
 export type Health = {
     readonly type: typeof types.HEALTH;
     readonly hp: number;
+    readonly baseArmor: number;
 };
 
 export type ActionDeck = {

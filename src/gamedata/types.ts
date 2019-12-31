@@ -7,6 +7,7 @@ export type CharacterData = {
     readonly actionCards: readonly string[];
     readonly positionCards: readonly [readonly string[], readonly string[], readonly string[]];
     readonly baseDamage: number;
+    readonly baseArmor: number;
 };
 
 export type DemonData = {
@@ -20,6 +21,7 @@ export type EnemyData = {
     readonly maxHp: number;
     readonly actionCards: readonly string[];
     readonly baseDamage: number;
+    readonly baseArmor: number;
 };
 
 export type ActionCardData = {

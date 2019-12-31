@@ -20,6 +20,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
         actionCards: ['attack', 'attack', 'defend'],
         positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
         baseDamage: 5,
+        baseArmor: 0,
     },
     jeanne: {
         name: 'Jeanne',
@@ -27,6 +28,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
         actionCards: ['attack', 'defend', 'defend'],
         positionCards: [['advance'], ['advance', 'defend'], ['defend', 'defend', 'basic']],
         baseDamage: 3,
+        baseArmor: 2,
     },
     medusa: {
         name: 'Medusa',
@@ -34,6 +36,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
         actionCards: ['attack', 'attack', 'defend'],
         positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
         baseDamage: 5,
+        baseArmor: 0,
     },
 });
 
@@ -43,6 +46,7 @@ const enemies: Map<string, EnemyData> = mapFromObject({
         maxHp: 100,
         actionCards: ['basic', 'attack', 'defend'],
         baseDamage: 10,
+        baseArmor: 0,
     },
 });
 

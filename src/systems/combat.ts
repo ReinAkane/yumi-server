@@ -82,6 +82,7 @@ export function beginCombat(
         {
             type: 'health',
             hp: enemyData.maxHp,
+            baseArmor: enemyData.baseArmor,
         },
         {
             type: 'attacker',
@@ -107,6 +108,7 @@ export function beginCombat(
             {
                 type: 'health',
                 hp: characterData.maxHp,
+                baseArmor: characterData.baseArmor,
             },
             {
                 type: 'attacker',
