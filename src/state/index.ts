@@ -116,6 +116,20 @@ export function addComponents<E extends Entity>(
     );
 }
 
+export function removeComponents(
+    sessionId: string,
+    entity: Entity,
+    ...components: readonly (Component | null)[]
+): Entity {
+    for (const component of components) {
+        if (component !== null) {
+            repository.removeComponent(sessionId, component.id);
+        }
+    }
+
+    return repository.getEntity(sessionId, entity.id);
+}
+
 export function hasComponentOfType(sessionId: string, type: UnionType): boolean {
     return repository.hasComponentOfType(sessionId, type);
 }

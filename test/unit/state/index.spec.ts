@@ -98,6 +98,54 @@ describe('Entities and Components entry', () => {
         ).to.deep.equal(entity);
     });
 
+    it('Scenario: Components removed', () => {
+        // given
+        const accountId = chance.guid();
+        const component: state.ComponentData = { type: 'health', hp: chance.d4(), baseArmor: chance.d4() };
+        const sessionId = state.openSession(accountId);
+        const baseEntity = state.createEntity(sessionId, component);
+        const componentRef = state.getComponentRef(state.getComponent(baseEntity, 'health'));
+
+        // when
+        const entity = state.removeComponents(sessionId, baseEntity, state.getComponent(baseEntity, 'health'));
+
+        // then
+        expect(state.hasComponentOfType(sessionId, 'health')).to.equal(false);
+        expect(state.getEntitiesWithComponents(sessionId, 'health')).to.deep.equal([]);
+        expect(state.getEntityWithComponents(sessionId, 'health')).to.equal(null);
+        expect(() => state.getComponentByRef(sessionId, componentRef)).to.throw();
+        expect(
+            state.getEntityByRef<never>(sessionId, state.getEntityRef(baseEntity)),
+        ).to.deep.equal(entity);
+    });
+
+    it('Scenario: No components removed', () => {
+        // given
+        const accountId = chance.guid();
+        const component: state.ComponentData = { type: 'health', hp: chance.d4(), baseArmor: chance.d4() };
+        const sessionId = state.openSession(accountId);
+        const baseEntity = state.createEntity(sessionId, component);
+
+        // when
+        const entity = state.removeComponents(sessionId, baseEntity, null);
+
+        // then
+        expect(state.hasComponentOfType(sessionId, 'health')).to.equal(true);
+        expect(state.hasComponentOfType(sessionId, 'hand')).to.equal(false);
+
+        expect(state.getEntitiesWithComponents(sessionId, 'health')).to.deep.equal([entity]);
+        expect(state.getEntityWithComponents(sessionId, 'health')).to.deep.equal(entity);
+        expect(state.getEntitiesWithComponents(sessionId, 'hand')).to.deep.equal([]);
+        expect(state.getEntityWithComponents(sessionId, 'hand')).to.equal(null);
+
+        expect(state.getComponent(entity, 'health')?.data).to.deep.equal(component);
+        expect(state.getComponents(entity, 'health')).to.deep.equal([
+            state.getComponent(entity, 'health'),
+        ]);
+        expect(state.getComponent(entity, 'hand')).to.equal(null);
+        expect(state.getComponents(entity, 'hand')).to.deep.equal([]);
+    });
+
     it('Scenario: Get component by ref', () => {
         // given
         const accountId = chance.guid();

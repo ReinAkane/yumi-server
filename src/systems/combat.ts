@@ -166,25 +166,104 @@ export function abortCombat(): boolean {
     return false;
 }
 
-function endTurn(sessionId: string): void {
-    // run movement system
-    for (const character of state.getEntitiesWithComponents(sessionId, 'position')) {
-        position.advancePosition(character);
+function killCharacter(sessionId: string, character: state.Entity): void {
+    const player = state.getEntityWithComponents(sessionId, 'player status', 'action deck', 'hand');
+    if (player === null) {
+        throw new Error('Combat corrupted.');
     }
 
-    // wait for player action input
+    // remove health component
+    // remove attacker component
+    // remove position component
+    state.removeComponents(
+        sessionId,
+        character,
+        state.getComponent(character, 'health'),
+        state.getComponent(character, 'attacker'),
+        state.getComponent(character, 'position'),
+    );
+
+    // discard all cards from that character
+    for (const cardRef of state.getComponent(player, state.HAND).data.cardRefs) {
+        const card = state.getComponentByRef(sessionId, cardRef);
+        const owner = state.getComponent(
+            state.getEntityByComponent(
+                sessionId,
+                card,
+            ),
+            state.CARD_OWNER,
+        );
+
+        if (owner && owner.data.owner.id === character.id) {
+            decks.discard(
+                state.getComponent(player, state.HAND),
+                state.getComponent(player, state.ACTION_DECK),
+                card,
+            );
+        }
+    }
+
+    // remove all cards from that character from the deck
+    for (const cardRef of state.getComponent(player, state.ACTION_DECK).data.cardRefs) {
+        const card = state.getComponentByRef(sessionId, cardRef);
+        const owner = state.getComponent(
+            state.getEntityByComponent(
+                sessionId,
+                card,
+            ),
+            state.CARD_OWNER,
+        );
+
+        if (owner && owner.data.owner.id === character.id) {
+            decks.remove(
+                state.getComponent(player, state.ACTION_DECK),
+                cardRef,
+            );
+        }
+    }
+}
+
+function endTurn(sessionId: string): void {
     const combatStatus = state.getEntityWithComponents(sessionId, 'combat status');
     if (combatStatus === null) {
         throw new Error('Cannot end turn when not in combat.');
     }
 
-    state.updateComponent(
-        state.getComponent(combatStatus, 'combat status'),
-        {
-            state: 'waiting for action',
-            pendingEnemyAttack: null,
-        },
-    );
+    for (const character of state.getEntitiesWithComponents(sessionId, 'character status', 'health')) {
+        if (state.getComponent(character, 'health').data.hp <= 0) {
+            killCharacter(sessionId, character);
+        }
+    }
+
+    const enemy = state.getEntityWithComponents(sessionId, 'enemy status', 'health');
+
+    if (enemy === null) {
+        throw new Error('No enemy found.');
+    }
+
+    if (state.getEntitiesWithComponents(sessionId, 'character status', 'health').length === 0) {
+        state.updateComponent(state.getComponent(combatStatus, state.COMBAT_STATUS), {
+            state: 'defeat',
+        });
+    } else if (state.getComponent(enemy, state.HEALTH).data.hp <= 0) {
+        state.updateComponent(state.getComponent(combatStatus, state.COMBAT_STATUS), {
+            state: 'victory',
+        });
+    } else {
+        // run movement system
+        for (const character of state.getEntitiesWithComponents(sessionId, 'position')) {
+            position.advancePosition(character);
+        }
+
+        // wait for player action input
+        state.updateComponent(
+            state.getComponent(combatStatus, 'combat status'),
+            {
+                state: 'waiting for action',
+                pendingEnemyAttack: null,
+            },
+        );
+    }
 }
 
 export function playerAttack(sessionId: string, cardId: string): string | null {

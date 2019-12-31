@@ -2,8 +2,8 @@ import { ComponentRef, EntityRef, RefWithComponent } from './ref-types';
 import * as types from './component-types';
 
 export type CombatStatus = {
-    readonly type: typeof types.COMBAT_STATUS,
-    readonly state: 'setting up' | 'waiting for action' | 'waiting for defense'
+    readonly type: typeof types.COMBAT_STATUS;
+    readonly state: 'setting up' | 'waiting for action' | 'waiting for defense' | 'defeat' | 'victory';
     readonly pendingEnemyAttack: ComponentRef<'action card'> | null;
 };
 

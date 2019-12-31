@@ -67,3 +67,12 @@ export function discard(from: state.Component<'hand'>, to: state.Component<'acti
         cardRefs: deckCards,
     });
 }
+
+export function remove(from: state.Component<'action deck'>, ...cardRefs: state.ComponentRef<'action card'>[]): void {
+    const ids = new Set(cardRefs.map((ref) => ref.id));
+    const remainingCards = from.data.cardRefs.filter(({ id }) => !ids.has(id));
+
+    state.updateComponent(from, {
+        cardRefs: remainingCards,
+    });
+}

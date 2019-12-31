@@ -242,3 +242,23 @@ export function getEntityByComponent(sessionId: string, componentId: string): En
 
     return getEntity(sessionId, component.entityId);
 }
+
+export function removeComponent(sessionId: string, componentId: string): void {
+    const component = getExistingComponent(componentId);
+    const session = getExistingSession(sessionId);
+    const entity = getExistingEntity(sessionId, component.entityId);
+
+    components.delete(component.id);
+    session.componentIds.delete(component.id);
+    entity.componentIds.delete(component.id);
+
+    for (const id of entity.componentIds) {
+        const otherComponent = getExistingComponent(id);
+
+        if (otherComponent.data.type === component.data.type) {
+            return;
+        }
+    }
+
+    session.cached.byComponentType.get(component.data.type)?.delete(entity.id);
+}

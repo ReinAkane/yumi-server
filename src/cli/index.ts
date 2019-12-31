@@ -143,6 +143,12 @@ function getInput(): Promise<string> {
         case 'waiting for defense':
             inter.setPrompt('What do you want to defend with?\n  ("none" or "defend <card to defend with>") > ');
             break;
+        case 'defeat':
+            inter.setPrompt('You lost! Enter "quit" to quit. > ');
+            break;
+        case 'victory':
+            inter.setPrompt('You won! Enter "quit" to quit. > ');
+            break;
         default:
             inter.setPrompt('Something went wrong... > ');
             break;
@@ -175,17 +181,18 @@ function handleAttackInput(input: string): boolean {
         return false;
     }
 
+    const logStart = `Player attacked with "${displayCardName(ref)}" and the enemy`;
     const defenderCard = combat.playerAttack(sessionId, ref.id);
 
     if (defenderCard === null) {
-        actionLog.push(`Player attacked with "${displayCardName(ref)}" and the enemy took the hit!`);
+        actionLog.push(`${logStart} took the hit!`);
     } else {
         const defenderRef: state.ComponentRef<'action card'> = {
             id: defenderCard,
             type: 'action card',
         };
 
-        actionLog.push(`Player attacked with "${displayCardName(ref)}" and the enemy defended with "${displayCardName(defenderRef)}".`);
+        actionLog.push(`${logStart} defended with "${displayCardName(defenderRef)}".`);
     }
 
     return true;
