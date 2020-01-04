@@ -10,14 +10,24 @@ export function run(
 ): void {
     const attack = state.getEntityByRef<never>(sessionId, state.getComponent(attackCard, 'action card').data.attackRef);
     const defense = defendCard ? state.getEntityByRef<never>(sessionId, state.getComponent(defendCard, 'action card').data.defendRef) : undefined;
-    const remainingHp = damage.run(sessionId, attacker, defender, attack, defense);
+    let remainingHp = state.getComponent(defender, 'health').data.hp;
 
-    if (remainingHp && defense) {
-        if (state.getComponent(defense, state.RETALIATE)) {
-            const attackerHp = state.getComponent(attacker, 'health');
-            const defenderAttack = state.getComponent(defender, 'attacker');
+    if (defense && state.getComponent(defense, state.CANCEL_ATTACKS) === null) {
+        for (const _ of state.getComponents(attack, state.ATTACK)) {
+            remainingHp = damage.run(sessionId, attacker, defender, attack, defense);
 
-            if (attackerHp && defenderAttack) {
+            if (remainingHp <= 0) {
+                break;
+            }
+        }
+    }
+
+    if (remainingHp > 0 && defense && state.getComponent(attack, state.CANCEL_ATTACKS) === null) {
+        const attackerHp = state.getComponent(attacker, 'health');
+        const defenderAttack = state.getComponent(defender, 'attacker');
+
+        if (attackerHp && defenderAttack) {
+            for (const _ of state.getComponents(defense, state.ATTACK)) {
                 damage.run(
                     sessionId,
                     state.getEntityByComponent(sessionId, defenderAttack),

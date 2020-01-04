@@ -91,13 +91,18 @@ export type Rage = {
     readonly tauntMultiplier: number;
 };
 
-export type Retaliate = {
-    readonly type: typeof types.RETALIATE;
+export type Attack = {
+    readonly type: typeof types.ATTACK;
 };
 
-export type Union = CombatStatus | EnemyStatus | PlayerStatus | CharacterStatus | Health |
-ActionDeck | Position | Hand | Attacker | ActionCard | BonusDamage | DamageReduction | CardOwner |
-Threat | Taunt | Rage | Retaliate;
+export type CancelAttacks = {
+    readonly type: typeof types.CANCEL_ATTACKS;
+};
+
+export type ArmorPenetration = {
+    readonly type: typeof types.ARMOR_PENETRATION;
+    readonly multiplier: number;
+};
 
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
@@ -117,6 +122,8 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.THREAT ? Threat :
     T extends typeof types.TAUNT ? Taunt :
     T extends typeof types.RAGE ? Rage :
-    T extends typeof types.RETALIATE ? Retaliate :
+    T extends typeof types.ATTACK ? Attack :
+    T extends typeof types.CANCEL_ATTACKS ? CancelAttacks :
+    T extends typeof types.ARMOR_PENETRATION ? ArmorPenetration :
     never;
 /* eslint-enable @typescript-eslint/indent */

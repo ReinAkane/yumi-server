@@ -20,6 +20,18 @@ function applyDamageReduction(damage: number, card: state.Entity): number {
     return result;
 }
 
+function getArmorMultipier(cards: readonly state.Entity[]): number {
+    let multiplier = 1;
+
+    for (const card of cards) {
+        for (const armorPenetration of state.getComponents(card, state.ARMOR_PENETRATION)) {
+            multiplier *= armorPenetration.data.multiplier;
+        }
+    }
+
+    return multiplier;
+}
+
 function getActionCardFromPosition(sessionId: string, position: state.Component<'position'>): state.Component<'action card'> {
     return state.getComponentByRef(sessionId, position.data.currentCardRef);
 }
@@ -88,7 +100,9 @@ export function run(
         applyBonusDamage,
         state.getComponent(attacker, 'attacker').data.baseDamage - state.getComponent(defender, 'health').data.baseArmor,
     );
-    const netDamage = Math.max(0, defenderCards.reduce(applyDamageReduction, maximumDamage));
+    const armorMultiplier = getArmorMultipier(attackerCards);
+    const armor = Math.max(0, defenderCards.reduce(applyDamageReduction, 0));
+    const netDamage = Math.max(1, maximumDamage + Math.ceil(armor * armorMultiplier));
 
     let health = state.getComponent(defender, 'health');
 

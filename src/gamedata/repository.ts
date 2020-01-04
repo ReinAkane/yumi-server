@@ -54,13 +54,17 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
     basic: {
         name: 'Blank Card',
         positionDescription: 'idling',
-        attackPrefab: [],
+        attackPrefab: [{
+            type: components.ATTACK,
+        }],
         defendPrefab: [],
     },
     defend: {
         name: 'Defend +5',
         positionDescription: 'bracing for impact',
         attackPrefab: [{
+            type: components.ATTACK,
+        }, {
             type: components.RAGE,
             tauntMultiplier: 0.5,
         }],
@@ -80,6 +84,9 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
         positionDescription: 'in position to attack',
         attackPrefab: [
             {
+                type: components.ATTACK,
+            },
+            {
                 type: components.BONUS_DAMAGE,
                 add: 5,
             },
@@ -96,20 +103,24 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
     advance: {
         name: 'Blank Card',
         positionDescription: 'advancing',
-        attackPrefab: [],
+        attackPrefab: [{
+            type: components.ATTACK,
+        }],
         defendPrefab: [],
     },
     vengeance: {
         name: 'Retaliate',
         positionDescription: 'parrying',
-        attackPrefab: [],
+        attackPrefab: [{
+            type: components.ATTACK,
+        }],
         defendPrefab: [
             {
                 type: components.BONUS_DAMAGE,
                 add: -5,
             },
             {
-                type: components.RETALIATE,
+                type: components.ATTACK,
             },
             {
                 type: components.TAUNT,
