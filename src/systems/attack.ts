@@ -1,6 +1,7 @@
 import * as state from '../state';
 import * as damage from './damage';
 import * as buffs from './buffs';
+import { enqueueNextPosition } from './position';
 import { eachRelevantEffect } from './combat-effects';
 
 function shouldCancelAttacks(effects: Iterable<state.Entity>): boolean {
@@ -41,6 +42,12 @@ function runAttacks(sessionId: string, attackInfo: {
                     break;
                 }
             }
+        }
+    }
+
+    for (const entity of eachRelevantEffect(sessionId, attackInfo)) {
+        for (const move of state.getComponents(entity, state.MOVE_TO_POSITION)) {
+            enqueueNextPosition(sessionId, attackInfo.attacker, move.data.tags);
         }
     }
 

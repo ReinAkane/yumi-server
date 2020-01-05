@@ -151,7 +151,6 @@ export type ReapplyPosition = {
 
 export type MoveToPosition = {
     readonly type: typeof types.MOVE_TO_POSITION;
-    readonly applyTo: 'attacker' | 'defender';
     readonly tags: Set<PositionCardTag>;
 };
 
