@@ -8,6 +8,7 @@ import {
     HEALTH,
     POSITION,
     LINK_EFFECT,
+    REAPPLY_POSITION,
     getEntityByRef,
     getFreshComponent,
     getFreshComponents,
@@ -58,6 +59,60 @@ function* defenderEntities(
     yield* eachLinkedEntity(sessionId, effect.data.universalRef, matchOptions);
 }
 
+function* eachNonPositionAttackerEffect(
+    sessionId: string,
+    participants: {
+        attacker?: Entity & WithComponent<typeof ATTACKER>,
+        attackCard?: Component<typeof COMBAT_EFFECT>,
+    },
+): Generator<Entity> {
+    const {
+        attacker,
+        attackCard,
+    } = participants;
+
+    const attackerMatchOptions: MatchOptions = {
+        actor: attacker,
+    };
+
+    if (undefined !== attacker) {
+        for (const passive of getFreshComponents(sessionId, attacker, COMBAT_EFFECT)) {
+            yield* attackerEntities(sessionId, passive, attackerMatchOptions);
+        }
+    }
+
+    if (undefined !== attackCard) {
+        yield* attackerEntities(sessionId, attackCard, attackerMatchOptions);
+    }
+}
+
+function* eachNonPositionDefenderEffect(
+    sessionId: string,
+    participants: {
+        defender?: Entity & WithComponent<typeof HEALTH>,
+        defendCard?: Component<typeof COMBAT_EFFECT>,
+    },
+): Generator<Entity> {
+    const {
+        defender,
+        defendCard,
+    } = participants;
+
+    const defenderMatchOptions: MatchOptions = {
+        actor: defender,
+    };
+
+    if (undefined !== defender) {
+        for (const passive of getFreshComponents(sessionId, defender, COMBAT_EFFECT)) {
+            yield* defenderEntities(sessionId, passive, defenderMatchOptions);
+        }
+    }
+
+    if (undefined !== defendCard) {
+        yield* defenderEntities(sessionId, defendCard, defenderMatchOptions);
+    }
+}
+
 export function* eachRelevantEffect(
     sessionId: string,
     participants: {
@@ -67,55 +122,60 @@ export function* eachRelevantEffect(
         defendCard?: Component<typeof COMBAT_EFFECT>,
     },
 ): Generator<Entity> {
+    let defendPositionMultiplier = 1;
+    let attackPositionMultiplier = 1;
     const {
         attacker,
-        attackCard,
         defender,
-        defendCard,
     } = participants;
 
-    const attackerMatchOptions: MatchOptions = {
-        actor: attacker,
-    };
-    const defenderMatchOptions: MatchOptions = {
-        actor: defender,
-    };
+    for (const entity of eachNonPositionAttackerEffect(sessionId, participants)) {
+        yield entity;
+
+        for (const _ of getFreshComponents(sessionId, entity, REAPPLY_POSITION)) {
+            attackPositionMultiplier += 1;
+        }
+    }
 
     if (undefined !== attacker) {
-        const position = getFreshComponent(sessionId, attacker, POSITION);
+        const attackerMatchOptions: MatchOptions = {
+            actor: attacker,
+        };
 
-        if (position !== null) {
-            const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
-            const positionEffect = getComponentByRef(sessionId, positionCard.data.effectRef);
+        for (let i = 0; i < attackPositionMultiplier; i += 1) {
+            const position = getFreshComponent(sessionId, attacker, POSITION);
 
-            yield* attackerEntities(sessionId, positionEffect, attackerMatchOptions);
+            if (position !== null) {
+                const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
+                const positionEffect = getComponentByRef(sessionId, positionCard.data.effectRef);
+
+                yield* attackerEntities(sessionId, positionEffect, attackerMatchOptions);
+            }
         }
+    }
 
-        for (const passive of getFreshComponents(sessionId, attacker, COMBAT_EFFECT)) {
-            yield* attackerEntities(sessionId, passive, attackerMatchOptions);
+    for (const entity of eachNonPositionDefenderEffect(sessionId, participants)) {
+        yield entity;
+
+        for (const _ of getFreshComponents(sessionId, entity, REAPPLY_POSITION)) {
+            defendPositionMultiplier += 1;
         }
     }
 
     if (undefined !== defender) {
-        const position = getFreshComponent(sessionId, defender, POSITION);
+        const defenderMatchOptions: MatchOptions = {
+            actor: defender,
+        };
 
-        if (position !== null) {
-            const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
-            const positionEffect = getComponentByRef(sessionId, positionCard.data.effectRef);
+        for (let i = 0; i < defendPositionMultiplier; i += 1) {
+            const position = getFreshComponent(sessionId, defender, POSITION);
 
-            yield* defenderEntities(sessionId, positionEffect, defenderMatchOptions);
+            if (position !== null) {
+                const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
+                const positionEffect = getComponentByRef(sessionId, positionCard.data.effectRef);
+
+                yield* defenderEntities(sessionId, positionEffect, defenderMatchOptions);
+            }
         }
-
-        for (const passive of getFreshComponents(sessionId, defender, COMBAT_EFFECT)) {
-            yield* defenderEntities(sessionId, passive, defenderMatchOptions);
-        }
-    }
-
-    if (undefined !== attackCard) {
-        yield* attackerEntities(sessionId, attackCard, attackerMatchOptions);
-    }
-
-    if (undefined !== defendCard) {
-        yield* defenderEntities(sessionId, defendCard, attackerMatchOptions);
     }
 }

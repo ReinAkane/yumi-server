@@ -142,6 +142,10 @@ export type IfOwner = {
     readonly shouldBeOwner: boolean;
 };
 
+export type ReapplyPosition = {
+    readonly type: typeof types.REAPPLY_POSITION;
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -169,5 +173,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.APPLY_BUFF ? ApplyBuff :
     T extends typeof types.LINK_EFFECT ? LinkEffect :
     T extends typeof types.IF_OWNER ? IfOwner :
+    T extends typeof types.REAPPLY_POSITION ? ReapplyPosition :
     never;
 /* eslint-enable @typescript-eslint/indent */
