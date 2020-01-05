@@ -7,6 +7,7 @@ import * as position from './position';
 import * as attack from './attack';
 import * as cards from './cards';
 import * as targetting from './targetting';
+import * as buffs from './buffs';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -243,6 +244,9 @@ function endTurn(sessionId: string): void {
         for (const character of state.getEntitiesWithComponents(sessionId, 'position')) {
             position.advancePosition(character);
         }
+
+        // run buff system
+        buffs.tickBuffs(sessionId);
 
         // wait for player action input
         state.updateComponent(

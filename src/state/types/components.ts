@@ -117,6 +117,21 @@ export type PositionCard = {
     readonly effectRef: ComponentRef<typeof types.COMBAT_EFFECT>;
 };
 
+export type Buff = {
+    readonly type: typeof types.BUFF;
+    readonly effectRef: ComponentRef<typeof types.COMBAT_EFFECT>;
+    readonly remainingTurns: number;
+};
+
+export type ApplyBuff = {
+    readonly type: typeof types.APPLY_BUFF;
+    readonly universalRef: EntityRef;
+    readonly attackRef: EntityRef;
+    readonly defendRef: EntityRef;
+    readonly duration: number;
+    readonly applyTo: 'attacker' | 'defender';
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -140,5 +155,7 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.CANCEL_ATTACKS ? CancelAttacks :
     T extends typeof types.ARMOR_PENETRATION ? ArmorPenetration :
     T extends typeof types.POSITION_CARD ? PositionCard :
+    T extends typeof types.BUFF ? Buff :
+    T extends typeof types.APPLY_BUFF ? ApplyBuff :
     never;
 /* eslint-enable @typescript-eslint/indent */

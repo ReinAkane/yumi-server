@@ -1,5 +1,6 @@
 import * as state from '../state';
 import * as damage from './damage';
+import * as buffs from './buffs';
 import { eachRelevantEffect } from './combat-effects';
 
 function shouldCancelAttacks(effects: Iterable<state.Entity>): boolean {
@@ -24,6 +25,13 @@ function runAttacks(sessionId: string, attackInfo: {
         for (const entity of eachRelevantEffect(sessionId, attackInfo)) {
             for (const _ of state.getComponents(entity, state.ATTACK)) {
                 remainingHp = damage.run(
+                    attackInfo.attacker,
+                    attackInfo.defender,
+                    eachRelevantEffect(sessionId, attackInfo),
+                );
+
+                buffs.applyBuffs(
+                    sessionId,
                     attackInfo.attacker,
                     attackInfo.defender,
                     eachRelevantEffect(sessionId, attackInfo),
