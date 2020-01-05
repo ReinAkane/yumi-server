@@ -773,6 +773,9 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
                 type: components.BONUS_DAMAGE,
                 add: 10,
             }, {
+                type: components.ARMOR_PENETRATION,
+                multiplier: 0.25,
+            }, {
                 type: components.IF_OWNER,
                 shouldBeOwner: false,
             }),
