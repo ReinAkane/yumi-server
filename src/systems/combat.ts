@@ -239,9 +239,7 @@ function endTurn(sessionId: string): void {
         });
     } else {
         // run movement system
-        for (const character of state.getEntitiesWithComponents(sessionId, 'position')) {
-            position.advancePosition(character);
-        }
+        position.advancePositions(sessionId);
 
         // run buff system
         buffs.tickBuffs(sessionId);

@@ -3,15 +3,39 @@ import * as state from '../state';
 import * as prefabs from '../state/prefabs';
 import { chance } from '../chance';
 
+type PositionCardDeck = readonly [
+    readonly state.ComponentRef<'position card'>[],
+    readonly state.ComponentRef<'position card'>[],
+    readonly state.ComponentRef<'position card'>[],
+];
+
+function getRandomCardFromArray<T>(array: readonly T[]): T {
+    return array[chance.natural({ max: array.length - 1 })];
+}
+
 function getRandomCardFromStage(
-    allCardIds: readonly [
-        readonly state.ComponentRef<'position card'>[],
-        readonly state.ComponentRef<'position card'>[],
-        readonly state.ComponentRef<'position card'>[],
-    ],
+    allCardIds: PositionCardDeck,
     stage: 0 | 1 | 2,
 ): state.ComponentRef<'position card'> {
-    return allCardIds[stage][chance.natural({ max: allCardIds[stage].length - 1 })];
+    return getRandomCardFromArray(allCardIds[stage]);
+}
+
+function* getAllCardsMatchingTags(
+    sessionId: string,
+    allCardRefs: PositionCardDeck,
+    stage: 0 | 1 | 2,
+    tags: Set<state.PositionCardTag>,
+): Iterable<state.ComponentRef<'position card'>> {
+    const cache = [...tags];
+
+    for (const ref of allCardRefs[stage]) {
+        const component = state.getComponentByRef(sessionId, ref);
+        const cardTags = new Set(component.data.tags);
+
+        if (cache.every((tag) => cardTags.has(tag))) {
+            yield ref;
+        }
+    }
 }
 
 export function createPosition(
@@ -42,10 +66,11 @@ export function createPosition(
         allCardRefs,
         turnsInStage: 0,
         currentCardRef: getRandomCardFromStage(allCardRefs, 0),
+        nextCardTags: [],
     };
 }
 
-export function advancePosition(entity: state.Entity & state.WithComponent<'position'>): void {
+function advancePosition(sessionId: string, entity: state.Entity & state.WithComponent<'position'>): void {
     let position = state.getComponent(entity, 'position');
     const { stage, turnsInStage } = position.data;
 
@@ -68,10 +93,42 @@ export function advancePosition(entity: state.Entity & state.WithComponent<'posi
         }
     }
 
+    const nextTags = position.data.nextCardTags[0] || new Set();
+    const possibleNextCards = [...getAllCardsMatchingTags(
+        sessionId,
+        position.data.allCardRefs,
+        position.data.stage,
+        nextTags,
+    )];
+    const nextCard: state.ComponentRef<'position card'> = possibleNextCards.length === 0
+        ? getRandomCardFromStage(position.data.allCardRefs, position.data.stage)
+        : getRandomCardFromArray(possibleNextCards);
+
     state.updateComponent(
         position,
         {
-            currentCardRef: getRandomCardFromStage(position.data.allCardRefs, position.data.stage),
+            currentCardRef: nextCard,
+            nextCardTags: position.data.nextCardTags.slice(1),
         },
     );
+}
+
+export function advancePositions(sessionId: string): void {
+    for (const entity of state.getEntitiesWithComponents(sessionId, 'position')) {
+        advancePosition(sessionId, entity);
+    }
+}
+
+export function enqueueNextPosition(
+    sessionId: string,
+    entity: state.Entity,
+    tags: Set<state.PositionCardTag>,
+): void {
+    const position = state.getFreshComponent(sessionId, entity, state.POSITION);
+
+    if (position) {
+        state.updateComponent(position, {
+            nextCardTags: [...position.data.nextCardTags, tags],
+        });
+    }
 }

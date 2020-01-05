@@ -42,6 +42,7 @@ export type Position = {
     ]
     readonly turnsInStage: number;
     readonly currentCardRef: ComponentRef<'position card'>;
+    readonly nextCardTags: readonly Set<PositionCardTag>[];
 };
 
 export type Hand = {
@@ -111,10 +112,12 @@ export type ArmorPenetration = {
     readonly multiplier: number;
 };
 
+export type PositionCardTag = 'beneficial' | 'detrimental' | 'defensive' | 'offensive';
 export type PositionCard = {
     readonly type: typeof types.POSITION_CARD;
     readonly dataId: string;
     readonly effectRef: ComponentRef<typeof types.COMBAT_EFFECT>;
+    readonly tags: Set<PositionCardTag>;
 };
 
 export type Buff = {
@@ -146,6 +149,12 @@ export type ReapplyPosition = {
     readonly type: typeof types.REAPPLY_POSITION;
 };
 
+export type MoveToPosition = {
+    readonly type: typeof types.MOVE_TO_POSITION;
+    readonly applyTo: 'attacker' | 'defender';
+    readonly tags: Set<PositionCardTag>;
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -174,5 +183,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.LINK_EFFECT ? LinkEffect :
     T extends typeof types.IF_OWNER ? IfOwner :
     T extends typeof types.REAPPLY_POSITION ? ReapplyPosition :
+    T extends typeof types.MOVE_TO_POSITION ? MoveToPosition :
     never;
 /* eslint-enable @typescript-eslint/indent */

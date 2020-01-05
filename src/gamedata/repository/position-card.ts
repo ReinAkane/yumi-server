@@ -8,6 +8,7 @@ function createPositionCard(dataId: string, options: {
     attackEffects?: components.ComponentData[],
     defendEffects?: components.ComponentData[],
     universalEffects?: components.ComponentData[],
+    tags?: components.PositionCardTag[],
 }): Prefab<typeof components.POSITION_CARD> {
     let nextId = 0;
 
@@ -23,6 +24,7 @@ function createPositionCard(dataId: string, options: {
                             id: 'effect',
                             type: components.COMBAT_EFFECT,
                         },
+                        tags: new Set(options.tags),
                     },
                 }),
                 [components.COMBAT_EFFECT]: createComponents<typeof components.COMBAT_EFFECT>({
@@ -94,6 +96,7 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 type: components.TAUNT,
                 modifier: 1,
             }),
+            tags: ['beneficial', 'defensive'],
         }),
     },
     attack: {
@@ -107,6 +110,7 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 type: components.THREAT,
                 modifier: 1,
             }),
+            tags: ['beneficial', 'offensive'],
         }),
     },
     vengeance: {
@@ -121,6 +125,7 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 type: components.BONUS_DAMAGE,
                 add: -5,
             }),
+            tags: ['beneficial', 'defensive'],
         }),
     },
 });
