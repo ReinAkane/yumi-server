@@ -8,6 +8,7 @@ import {
     POSITION,
     getEntityByRef,
     getComponent,
+    getComponents,
     getComponentByRef,
 } from '../state';
 
@@ -37,6 +38,11 @@ export function* eachRelevantEffect(
             yield getEntityByRef<never>(sessionId, positionEffect.data.attackRef);
             yield getEntityByRef<never>(sessionId, positionEffect.data.universalRef);
         }
+
+        for (const passive of getComponents(attacker, COMBAT_EFFECT)) {
+            yield getEntityByRef<never>(sessionId, passive.data.attackRef);
+            yield getEntityByRef<never>(sessionId, passive.data.universalRef);
+        }
     }
 
     if (undefined !== defender) {
@@ -48,6 +54,11 @@ export function* eachRelevantEffect(
 
             yield getEntityByRef<never>(sessionId, positionEffect.data.defendRef);
             yield getEntityByRef<never>(sessionId, positionEffect.data.universalRef);
+        }
+
+        for (const passive of getComponents(defender, COMBAT_EFFECT)) {
+            yield getEntityByRef<never>(sessionId, passive.data.defendRef);
+            yield getEntityByRef<never>(sessionId, passive.data.universalRef);
         }
     }
 

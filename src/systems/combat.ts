@@ -1,6 +1,7 @@
 import * as state from '../state';
 import * as database from '../database';
 import * as gamedata from '../gamedata';
+import * as prefabs from '../state/prefabs';
 import * as decks from './decks';
 import * as position from './position';
 import * as attack from './attack';
@@ -97,23 +98,11 @@ export function beginCombat(
         const characterData = gamedata.getCharacter(characterId);
         const characterEntity = state.addComponents(
             sessionId,
+            prefabs.instantiate(sessionId, characterData.prefab),
             position.createPosition(
                 sessionId,
                 characterId,
             ),
-            {
-                type: 'character status',
-                dataId: characterId,
-            },
-            {
-                type: 'health',
-                hp: characterData.maxHp,
-                baseArmor: characterData.baseArmor,
-            },
-            {
-                type: 'attacker',
-                baseDamage: characterData.baseDamage,
-            },
         );
 
         for (const cardDataId of characterData.actionCards) {

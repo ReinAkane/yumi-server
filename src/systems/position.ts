@@ -17,7 +17,7 @@ function getRandomCardFromStage(
 export function createPosition(
     sessionId: string,
     characterDataId: string,
-): state.Entity & state.WithComponent<'position'> {
+): state.ComponentData<'position'> {
     const allCardRefs: [
         state.ComponentRef<'position card'>[],
         state.ComponentRef<'position card'>[],
@@ -36,16 +36,13 @@ export function createPosition(
         }
     }
 
-    return state.createEntity(
-        sessionId,
-        {
-            type: 'position',
-            stage: 0,
-            allCardRefs,
-            turnsInStage: 0,
-            currentCardRef: getRandomCardFromStage(allCardRefs, 0),
-        },
-    );
+    return {
+        type: 'position',
+        stage: 0,
+        allCardRefs,
+        turnsInStage: 0,
+        currentCardRef: getRandomCardFromStage(allCardRefs, 0),
+    };
 }
 
 export function advancePosition(entity: state.Entity & state.WithComponent<'position'>): void {
