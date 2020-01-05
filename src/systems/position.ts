@@ -2,6 +2,7 @@ import * as gamedata from '../gamedata';
 import * as state from '../state';
 import * as prefabs from '../state/prefabs';
 import { chance } from '../chance';
+import { log } from '../log';
 
 type PositionCardDeck = readonly [
     readonly state.ComponentRef<'position card'>[],
@@ -94,12 +95,18 @@ function advancePosition(sessionId: string, entity: state.Entity & state.WithCom
     }
 
     const nextTags = position.data.nextCardTags[0] || new Set();
+    if (position.data.nextCardTags[0]) {
+        log(`Moving to position with tags ${[...nextTags].join(', ')}`);
+    }
     const possibleNextCards = [...getAllCardsMatchingTags(
         sessionId,
         position.data.allCardRefs,
         position.data.stage,
         nextTags,
     )];
+    if (possibleNextCards.length === 0) {
+        log('No cards matching tags found!');
+    }
     const nextCard: state.ComponentRef<'position card'> = possibleNextCards.length === 0
         ? getRandomCardFromStage(position.data.allCardRefs, position.data.stage)
         : getRandomCardFromArray(possibleNextCards);
@@ -130,5 +137,7 @@ export function enqueueNextPosition(
         state.updateComponent(position, {
             nextCardTags: [...position.data.nextCardTags, tags],
         });
+    } else {
+        log('No position found when trying to move.');
     }
 }

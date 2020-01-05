@@ -328,6 +328,10 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
                 type: components.TAUNT,
                 modifier: 1,
             }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
+            }),
+            reactiveAttackEffects: createComponentData({
                 type: components.MOVE_TO_POSITION,
                 tags: new Set(['offensive']),
             }, {
@@ -674,27 +678,21 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
                 shouldBeOwner: true,
             }),
             reactiveDefendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -1,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
+            }),
+            reactiveAttackEffects: createComponentData({
                 type: components.MOVE_TO_POSITION,
                 tags: new Set(['defensive']),
-            }, {
-                type: components.LINK_EFFECT,
-                ref: {
-                    id: 'threatDown',
-                    withComponents: {},
-                },
             }),
             links: {
                 emptyBuff: [],
                 poison: createComponentData({
                     type: components.BONUS_DAMAGE,
                     add: -7,
-                }),
-                threatDown: createComponentData({
-                    type: components.THREAT,
-                    modifier: -1,
-                }, {
-                    type: components.IF_OWNER,
-                    shouldBeOwner: true,
                 }),
             },
         }),

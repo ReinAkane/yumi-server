@@ -1,4 +1,5 @@
 import * as state from '../state';
+import { log } from '../log';
 import * as damage from './damage';
 import * as buffs from './buffs';
 import * as decks from './decks';
@@ -48,6 +49,7 @@ function runAttacks(sessionId: string, attackInfo: {
 
     for (const entity of eachRelevantEffect(sessionId, attackInfo)) {
         for (const move of state.getComponents(entity, state.MOVE_TO_POSITION)) {
+            log(`Enqueueing position with tags ${[...move.data.tags].join(', ')}`);
             enqueueNextPosition(sessionId, attackInfo.attacker, move.data.tags);
         }
 
@@ -113,6 +115,7 @@ export function run(
                 defendCard: activeCardEffect,
             };
 
+            log('Running retaliation...');
             runAttacks(sessionId, retaliateInfo);
         }
     }
