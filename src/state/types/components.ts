@@ -155,6 +155,11 @@ export type MoveToPosition = {
     readonly tags: Set<PositionCardTag>;
 };
 
+export type IfPosition = {
+    readonly type: typeof types.IF_POSTION;
+    readonly tags: readonly PositionCardTag[];
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -184,5 +189,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.IF_OWNER ? IfOwner :
     T extends typeof types.REAPPLY_POSITION ? ReapplyPosition :
     T extends typeof types.MOVE_TO_POSITION ? MoveToPosition :
+    T extends typeof types.IF_POSTION ? IfPosition :
     never;
 /* eslint-enable @typescript-eslint/indent */
