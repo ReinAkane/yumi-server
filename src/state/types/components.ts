@@ -159,6 +159,11 @@ export type IfPosition = {
     readonly tags: readonly PositionCardTag[];
 };
 
+export type DrawActionCard = {
+    readonly type: typeof types.DRAW_ACTION_CARD;
+    readonly mustMatch?: 'attacker' | 'defender';
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -189,5 +194,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.REAPPLY_POSITION ? ReapplyPosition :
     T extends typeof types.MOVE_TO_POSITION ? MoveToPosition :
     T extends typeof types.IF_POSTION ? IfPosition :
+    T extends typeof types.DRAW_ACTION_CARD ? DrawActionCard :
     never;
 /* eslint-enable @typescript-eslint/indent */

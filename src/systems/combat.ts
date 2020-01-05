@@ -136,6 +136,7 @@ export function beginCombat(
 
     // draw starting hand
     decks.draw(
+        sessionId,
         state.getComponent(player, 'action deck'),
         state.getComponent(player, 'hand'),
         1,
@@ -355,6 +356,7 @@ export function playerPrepare(sessionId: string, cardIds: string[]): string | nu
     }
 
     decks.draw(
+        sessionId,
         state.refreshComponent(sessionId, playerDeck),
         state.refreshComponent(sessionId, hand),
         cardIds.length + 2,

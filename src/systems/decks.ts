@@ -11,18 +11,35 @@ export function createDeck(
     };
 }
 
-export function draw(from: state.Component<'action deck'>, to: state.Component<'hand'>, numCards: number): void {
+export function draw(
+    sessionId: string,
+    from: state.Component<'action deck'>,
+    to: state.Component<'hand'>,
+    numCards: number,
+    cardOwner?: state.EntityRef,
+): void {
     const remainingCards = [...from.data.cardRefs];
     const drawnCards = [...to.data.cardRefs];
 
     for (let i = 0; i < numCards; i += 1) {
-        if (remainingCards.length === 0) {
+        const allowedCards = cardOwner
+            ? remainingCards.filter((card) => {
+                const cardComponent = state.getComponentByRef(sessionId, card);
+                const cardEntity = state.getEntityByComponent(sessionId, cardComponent);
+                const owner = state.getFreshComponent(sessionId, cardEntity, state.CARD_OWNER);
+
+                return Boolean(owner && owner.data.owner.id === cardOwner.id);
+            })
+            : remainingCards;
+
+        if (allowedCards.length === 0) {
             break;
         }
 
-        const index = chance.natural({
-            max: remainingCards.length - 1,
-        });
+        const drawn = allowedCards[chance.natural({
+            max: allowedCards.length - 1,
+        })];
+        const index = remainingCards.indexOf(drawn);
 
         drawnCards.push(remainingCards.splice(index, 1)[0]);
     }

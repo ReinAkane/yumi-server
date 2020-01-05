@@ -1,6 +1,7 @@
 import * as state from '../state';
 import * as damage from './damage';
 import * as buffs from './buffs';
+import * as decks from './decks';
 import { enqueueNextPosition } from './position';
 import { eachRelevantEffect } from './combat-effects';
 
@@ -48,6 +49,33 @@ function runAttacks(sessionId: string, attackInfo: {
     for (const entity of eachRelevantEffect(sessionId, attackInfo)) {
         for (const move of state.getComponents(entity, state.MOVE_TO_POSITION)) {
             enqueueNextPosition(sessionId, attackInfo.attacker, move.data.tags);
+        }
+
+        for (const draw of state.getComponents(entity, state.DRAW_ACTION_CARD)) {
+            const player = state.getEntityWithComponents(
+                sessionId,
+                state.HAND,
+                state.ACTION_DECK,
+                state.PLAYER_STATUS,
+            );
+
+            if (player !== null) {
+                let owner: state.EntityRef | undefined;
+
+                switch (draw.data.mustMatch) {
+                    case 'attacker': owner = state.getEntityRef(attackInfo.attacker); break;
+                    case 'defender': owner = state.getEntityRef(attackInfo.defender); break;
+                    default: break;
+                }
+
+                decks.draw(
+                    sessionId,
+                    state.getComponent(player, state.ACTION_DECK),
+                    state.getComponent(player, state.HAND),
+                    1,
+                    owner,
+                );
+            }
         }
     }
 
