@@ -128,6 +128,16 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
             tags: ['beneficial', 'defensive'],
         }),
     },
+    sneaking: {
+        name: 'sneaking',
+        prefab: createPositionCard('sneaking', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -1,
+            }),
+            tags: ['beneficial', 'defensive'],
+        }),
+    },
 });
 
 export function getPositionCard(positionCardId: string): PositionCardData {

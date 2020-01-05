@@ -132,7 +132,7 @@ export type ApplyBuff = {
     readonly attackRef: EntityRef;
     readonly defendRef: EntityRef;
     readonly duration: number;
-    readonly applyTo: 'attacker' | 'defender';
+    readonly applyTo: 'attacker' | 'defender' | 'owner';
 };
 
 export type LinkEffect = {

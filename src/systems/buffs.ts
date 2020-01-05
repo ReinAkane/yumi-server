@@ -1,6 +1,8 @@
 import * as state from '../state';
+import { log } from '../log';
 
 function removeBuff(sessionId: string, buff: state.Component<typeof state.BUFF>): void {
+    log(`Del buff (fx id: ${buff.data.effectRef.id})`);
     const effect = state.getComponentByRef(sessionId, buff.data.effectRef);
 
     state.removeComponents(sessionId, state.getEntityByComponent(sessionId, buff), buff, effect);
@@ -28,7 +30,9 @@ function addBuff<T extends state.Entity>(
     target: T,
 ): T & state.WithComponent<typeof state.BUFF> & state.WithComponent<typeof state.COMBAT_EFFECT> {
     const initialComponentIds = new Set(
-        state.getComponents(target, state.COMBAT_EFFECT).map((component) => component.id),
+        [...state.getFreshComponents(sessionId, target, state.COMBAT_EFFECT)].map(
+            (component) => component.id,
+        ),
     );
     const entityWithEffect = state.addComponents(
         sessionId,
@@ -40,13 +44,17 @@ function addBuff<T extends state.Entity>(
             defendRef: applyBuff.data.defendRef,
         },
     );
-    const appliedComponent = state.getComponents(entityWithEffect, state.COMBAT_EFFECT).find(
+    const appliedComponent = [
+        ...state.getFreshComponents(sessionId, entityWithEffect, state.COMBAT_EFFECT),
+    ].find(
         (component) => !initialComponentIds.has(component.id),
     );
 
     if (appliedComponent === undefined) {
         throw new Error('Failed to apply buff effect.');
     }
+
+    log(`Add buff (fx id: ${appliedComponent.id})`);
 
     return state.addComponents(
         sessionId,
@@ -59,6 +67,26 @@ function addBuff<T extends state.Entity>(
     );
 }
 
+function getApplyTarget(
+    sessionId: string,
+    attacker: state.Entity,
+    defender: state.Entity,
+    applyBuff: state.Component<typeof state.APPLY_BUFF>,
+): state.Entity | null {
+    switch (applyBuff.data.applyTo) {
+        case 'attacker': return attacker;
+        case 'defender': return defender;
+        case 'owner':
+            const owner = state.getComponent(
+                state.getEntityByComponent(sessionId, applyBuff),
+                state.CARD_OWNER,
+            );
+
+            return owner ? state.getEntityByRef<never>(sessionId, owner.data.owner) : null;
+        default: throw new Error(`Unknown applyTo: ${applyBuff.data.applyTo}`);
+    }
+}
+
 export function applyBuffs(
     sessionId: string,
     attacker: state.Entity,
@@ -67,11 +95,17 @@ export function applyBuffs(
 ): void {
     for (const entity of effects) {
         for (const applyBuff of state.getComponents(entity, state.APPLY_BUFF)) {
-            addBuff(
-                sessionId,
-                applyBuff,
-                applyBuff.data.applyTo === 'attacker' ? attacker : defender,
-            );
+            const target = getApplyTarget(sessionId, attacker, defender, applyBuff);
+
+            if (target !== null) {
+                addBuff(
+                    sessionId,
+                    applyBuff,
+                    target,
+                );
+            } else {
+                log('Skipping buff application because no target was found.');
+            }
         }
     }
 }

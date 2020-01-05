@@ -13,13 +13,18 @@ function createCharacter(
         passiveAttackEffects?: components.ComponentData[],
         passiveDefendEffects?: components.ComponentData[],
         passiveUniversalEffects?: components.ComponentData[],
+        links?: {
+            [entityId: string]: components.ComponentData[],
+        }
     },
 ): Prefab<
         typeof components.CHARACTER_STATUS | typeof components.HEALTH | typeof components.ATTACKER
     > {
     let nextId = 0;
 
-    return {
+    const result:Prefab<
+        typeof components.CHARACTER_STATUS | typeof components.HEALTH | typeof components.ATTACKER
+    > = {
         root: {
             components: {
                 [components.CHARACTER_STATUS]: createComponents<typeof components.CHARACTER_STATUS>(
@@ -94,41 +99,130 @@ function createCharacter(
             })),
         },
     };
+
+    const links = options?.links || {};
+
+    for (const linkId of Object.keys(links)) {
+        if (result[linkId] !== undefined) {
+            throw new Error(`Cannot have duplicate ids in prefab. Problematic id: ${linkId}`);
+        }
+
+        result[linkId] = {
+            components: componentsToComponentMap(links[linkId].map((data) => {
+                nextId += 1;
+                return {
+                    id: String(nextId),
+                    data,
+                };
+            })),
+        };
+    }
+
+    return result;
 }
 
 const characters: Map<string, CharacterData> = mapFromObject({
     elf: {
         name: 'Elf',
-        actionCards: ['attack', 'attack', 'defend'],
-        positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
+        actionCards: [
+            'elf.ignite-arrows',
+            'shared.piercing-attack',
+            'elf.triple-shot',
+            'elf.stinging-shot',
+            'elf.double-shot',
+        ],
+        positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'attack', 'attack', 'basic']],
         prefab: createCharacter('elf', {
             maxHp: 30,
             damage: 5,
             armor: 0,
+            passiveDefendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -1,
+            }),
         }),
     },
     jeanne: {
         name: 'Jeanne',
-        actionCards: ['attack', 'defend', 'vengeance'],
-        positionCards: [['advance'], ['advance', 'defend'], ['defend', 'defend', 'basic']],
+        actionCards: [
+            'jeanne.double-swing',
+            'jeanne.tireless-assault',
+            'jeanne.shielded-strike',
+            'jeanne.shield-bash',
+            'jeanne.heavy-strike',
+        ],
+        positionCards: [['advance'], ['advance', 'defend'], ['defend', 'defend', 'defend', 'basic', 'attack']],
         prefab: createCharacter('jeanne', {
             maxHp: 40,
-            damage: 3,
-            armor: 0,
-            passiveDefendEffects: createComponentData({
-                type: components.DAMAGE_REDUCTION,
-                subtract: 2,
+            damage: 4,
+            armor: 2,
+            passiveAttackEffects: createComponentData({
+                type: components.APPLY_BUFF,
+                duration: 1,
+                applyTo: 'attacker',
+                universalRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                attackRef: {
+                    id: 'attackBuff',
+                    withComponents: {},
+                },
+                defendRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
             }),
+            links: {
+                attackBuff: createComponentData({
+                    type: components.BONUS_DAMAGE,
+                    add: 2,
+                }),
+                emptyBuff: [],
+            },
         }),
     },
     medusa: {
         name: 'Medusa',
-        actionCards: ['attack', 'attack', 'defend'],
-        positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'basic']],
+        actionCards: [
+            'shared.piercing-attack',
+            'medu.debilitating-poison',
+            'medu.into-the-shadows',
+            'medu.planned-strike',
+            'medu.forward-strike',
+        ],
+        positionCards: [['advance'], ['advance', 'sneaking'], ['attack', 'attack', 'sneaking', 'sneaking', 'sneaking']],
         prefab: createCharacter('medusa', {
             maxHp: 30,
             damage: 5,
             armor: 0,
+            passiveAttackEffects: createComponentData({
+                type: components.APPLY_BUFF,
+                duration: 3,
+                applyTo: 'attacker',
+                universalRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                attackRef: {
+                    id: 'threatBuff',
+                    withComponents: {},
+                },
+                defendRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+            }, {
+                type: components.IF_POSTION,
+                tags: ['offensive'],
+            }),
+            links: {
+                threatBuff: createComponentData({
+                    type: components.THREAT,
+                    modifier: -1,
+                }),
+                emptyBuff: [],
+            },
         }),
     },
 });

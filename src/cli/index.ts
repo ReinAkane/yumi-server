@@ -4,6 +4,9 @@ import * as gamedata from '../gamedata';
 import * as combat from '../systems/combat';
 import * as account from '../systems/account';
 import * as session from '../systems/session';
+import { log } from '../log';
+
+log('new game\n\n');
 
 const accountId = account.createAccount();
 const sessionId = session.openSession(accountId);
