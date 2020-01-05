@@ -7,8 +7,8 @@ import {
     HEALTH,
     POSITION,
     getEntityByRef,
-    getComponent,
-    getComponents,
+    getFreshComponent,
+    getFreshComponents,
     getComponentByRef,
 } from '../state';
 
@@ -29,7 +29,7 @@ export function* eachRelevantEffect(
     } = participants;
 
     if (undefined !== attacker) {
-        const position = getComponent(attacker, POSITION);
+        const position = getFreshComponent(sessionId, attacker, POSITION);
 
         if (position !== null) {
             const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
@@ -39,14 +39,14 @@ export function* eachRelevantEffect(
             yield getEntityByRef<never>(sessionId, positionEffect.data.universalRef);
         }
 
-        for (const passive of getComponents(attacker, COMBAT_EFFECT)) {
+        for (const passive of getFreshComponents(sessionId, attacker, COMBAT_EFFECT)) {
             yield getEntityByRef<never>(sessionId, passive.data.attackRef);
             yield getEntityByRef<never>(sessionId, passive.data.universalRef);
         }
     }
 
     if (undefined !== defender) {
-        const position = getComponent(defender, POSITION);
+        const position = getFreshComponent(sessionId, defender, POSITION);
 
         if (position !== null) {
             const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
@@ -56,7 +56,7 @@ export function* eachRelevantEffect(
             yield getEntityByRef<never>(sessionId, positionEffect.data.universalRef);
         }
 
-        for (const passive of getComponents(defender, COMBAT_EFFECT)) {
+        for (const passive of getFreshComponents(sessionId, defender, COMBAT_EFFECT)) {
             yield getEntityByRef<never>(sessionId, passive.data.defendRef);
             yield getEntityByRef<never>(sessionId, passive.data.universalRef);
         }

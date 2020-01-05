@@ -216,6 +216,16 @@ export function getComponents<T extends UnionType>(
     return componentList;
 }
 
+export function getFreshComponents<T extends UnionType>(
+    sessionId: string,
+    entity: Entity,
+    type: T,
+): Iterable<Component<T>> {
+    const updatedEntity = repository.getEntity(sessionId, entity.id);
+
+    return getComponents(updatedEntity, type);
+}
+
 export function getComponent<T extends UnionType>(
     entity: Entity & WithComponent<T>,
     type: T,
@@ -229,6 +239,16 @@ export function getComponent<T extends UnionType>(
     type: T,
 ): Component<T> | null {
     return getComponents(entity, type)[0] || null;
+}
+
+export function getFreshComponent<T extends UnionType>(
+    sessionId: string,
+    entity: Entity,
+    type: T,
+): Component<T> | null {
+    const updatedEntity = repository.getEntity(sessionId, entity.id);
+
+    return getComponent(updatedEntity, type);
 }
 
 export function getComponentByRef<T extends ComponentRef>(
