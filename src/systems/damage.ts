@@ -32,76 +32,19 @@ function getArmorMultipier(cards: readonly state.Entity[]): number {
     return multiplier;
 }
 
-function getActionCardFromPosition(sessionId: string, position: state.Component<'position'>): state.Component<'action card'> {
-    return state.getComponentByRef(sessionId, position.data.currentCardRef);
-}
-
-function buildAttackerCardList(
-    sessionId: string,
-    attacker: state.Entity,
-    attackCard: state.Entity,
-): readonly state.Entity[] {
-    const cards: state.Entity[] = [];
-
-    const attackerPosition = state.getComponent(attacker, 'position');
-
-    if (attackerPosition !== null) {
-        const actionCard = getActionCardFromPosition(sessionId, attackerPosition);
-
-        cards.push(state.getEntityByRef<never>(sessionId, actionCard.data.attackRef));
-    }
-
-    cards.push(attackCard);
-
-    return cards;
-}
-
-function buildDefenderCardList(
-    sessionId: string,
-    defender: state.Entity & state.WithComponent<'health'>,
-    defendCard?: state.Entity,
-): readonly state.Entity[] {
-    const cards: state.Entity[] = [];
-
-    const defenderPosition = state.getComponent(defender, 'position');
-
-    if (defenderPosition !== null) {
-        const actionCard = getActionCardFromPosition(sessionId, defenderPosition);
-
-        cards.push(state.getEntityByRef<never>(sessionId, actionCard.data.defendRef));
-    }
-
-    if (defendCard !== undefined) {
-        cards.push(defendCard);
-    }
-
-    return cards;
-}
-
 export function run(
-    sessionId: string,
     attacker: state.Entity & state.WithComponent<'attacker'>,
     defender: state.Entity & state.WithComponent<'health'>,
-    attackCard: state.Entity,
-    defendCard?: state.Entity,
+    effects: Iterable<state.Entity>,
 ): number {
-    const attackerCards = buildAttackerCardList(
-        sessionId,
-        attacker,
-        attackCard,
-    );
-    const defenderCards = buildDefenderCardList(
-        sessionId,
-        defender,
-        defendCard,
-    );
+    const effectsCache = [...effects];
 
-    const maximumDamage = attackerCards.reduce(
+    const maximumDamage = effectsCache.reduce(
         applyBonusDamage,
         state.getComponent(attacker, 'attacker').data.baseDamage - state.getComponent(defender, 'health').data.baseArmor,
     );
-    const armorMultiplier = getArmorMultipier(attackerCards);
-    const armor = Math.max(0, defenderCards.reduce(applyDamageReduction, 0));
+    const armorMultiplier = getArmorMultipier(effectsCache);
+    const armor = Math.min(0, effectsCache.reduce(applyDamageReduction, 0));
     const netDamage = Math.max(1, maximumDamage + Math.ceil(armor * armorMultiplier));
 
     let health = state.getComponent(defender, 'health');

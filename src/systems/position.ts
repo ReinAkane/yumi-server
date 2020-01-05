@@ -1,16 +1,16 @@
 import * as gamedata from '../gamedata';
 import * as state from '../state';
-import * as cards from './cards';
+import * as prefabs from '../state/prefabs';
 import { chance } from '../chance';
 
 function getRandomCardFromStage(
     allCardIds: readonly [
-        readonly state.ComponentRef<'action card'>[],
-        readonly state.ComponentRef<'action card'>[],
-        readonly state.ComponentRef<'action card'>[],
+        readonly state.ComponentRef<'position card'>[],
+        readonly state.ComponentRef<'position card'>[],
+        readonly state.ComponentRef<'position card'>[],
     ],
     stage: 0 | 1 | 2,
-): state.ComponentRef<'action card'> {
+): state.ComponentRef<'position card'> {
     return allCardIds[stage][chance.natural({ max: allCardIds[stage].length - 1 })];
 }
 
@@ -19,17 +19,20 @@ export function createPosition(
     characterDataId: string,
 ): state.Entity & state.WithComponent<'position'> {
     const allCardRefs: [
-        state.ComponentRef<'action card'>[],
-        state.ComponentRef<'action card'>[],
-        state.ComponentRef<'action card'>[],
+        state.ComponentRef<'position card'>[],
+        state.ComponentRef<'position card'>[],
+        state.ComponentRef<'position card'>[],
     ] = [[], [], []];
     const characterData = gamedata.getCharacter(characterDataId);
 
     for (let i = 0; i < allCardRefs.length; i += 1) {
         for (const cardDataId of characterData.positionCards[i]) {
-            const card = cards.createCard(sessionId, cardDataId);
+            const card = prefabs.instantiate(
+                sessionId,
+                gamedata.getPositionCard(cardDataId).prefab,
+            );
 
-            allCardRefs[i].push(state.getComponentRef(state.getComponent(card, 'action card')));
+            allCardRefs[i].push(state.getComponentRef(state.getComponent(card, 'position card')));
         }
     }
 

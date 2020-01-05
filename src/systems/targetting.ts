@@ -1,59 +1,36 @@
 import * as state from '../state';
 import { chance } from '../chance';
-
-function addCardPriority(
-    tauntMultiplier: number,
-    priority: number,
-    cardEntity: state.Entity,
-) {
-    let result = priority;
-
-    for (const taunt of state.getComponents(cardEntity, state.TAUNT)) {
-        result += taunt.data.modifier * tauntMultiplier;
-    }
-
-    for (const threat of state.getComponents(cardEntity, state.THREAT)) {
-        result += threat.data.modifier;
-    }
-
-    return result;
-}
+import { eachRelevantEffect } from './combat-effects';
 
 function calculatePriority(
-    sessionId: string,
     tauntMultiplier: number,
-    character: state.Entity,
-    defenseCard: state.Component<'action card'> | null,
+    effects: Iterable<state.Entity>,
 ): number {
     let priority = chance.floating({
         min: 0,
         max: 0.1,
     });
 
-    const position = state.getComponent(character, 'position');
+    for (const entity of effects) {
+        for (const taunt of state.getComponents(entity, state.TAUNT)) {
+            priority += taunt.data.modifier * tauntMultiplier;
+        }
 
-    if (position) {
-        const positionCard = state.getComponentByRef(sessionId, position.data.currentCardRef);
-        const positionEntity = state.getEntityByRef<never>(sessionId, positionCard.data.defendRef);
-
-        priority = addCardPriority(tauntMultiplier, priority, positionEntity);
-    }
-
-    if (defenseCard) {
-        const defenseEntity = state.getEntityByRef<never>(sessionId, defenseCard.data.defendRef);
-
-        priority = addCardPriority(tauntMultiplier, priority, defenseEntity);
+        for (const threat of state.getComponents(entity, state.THREAT)) {
+            priority += threat.data.modifier;
+        }
     }
 
     return priority;
 }
 
-function calculateRage(sessionId: string, attackCard: state.Component<'action card'>): number {
-    const attackEntity = state.getEntityByRef<never>(sessionId, attackCard.data.attackRef);
+function calculateRage(effects: Iterable<state.Entity>): number {
     let rage = 1;
 
-    for (const rageComponent of state.getComponents(attackEntity, state.RAGE)) {
-        rage *= rageComponent.data.tauntMultiplier;
+    for (const entity of effects) {
+        for (const rageComponent of state.getComponents(entity, state.RAGE)) {
+            rage *= rageComponent.data.tauntMultiplier;
+        }
     }
 
     return rage;
@@ -67,29 +44,48 @@ function sortByPriority(priorities: Map<state.Entity, number>) {
 
 export function selectTarget(
     sessionId: string,
-    attackCard: state.Component<'action card'>,
-    defenseCard: state.Component<'action card'> | null,
+    activeCard: state.Component<'action card'>,
+    reactiveCard: state.Component<'action card'> | null,
 ): state.Entity & state.WithComponent<'character status' | 'health'> {
     const characters = state.getEntitiesWithComponents(sessionId, 'character status', 'health');
+    const enemy = state.getEntityWithComponents(sessionId, 'enemy status', 'attacker');
+
+    if (enemy === null) {
+        throw new Error('No enemy that can attack found.');
+    }
 
     if (characters.length === 0) {
         throw new Error('No potential targets found.');
     }
 
-    const tauntMultiplier = calculateRage(sessionId, attackCard);
     const priorities: Map<state.Entity, number> = new Map();
     let owner: string | null | undefined = null;
-    if (defenseCard) {
+    if (reactiveCard) {
         owner = state.getComponent(
-            state.getEntityByComponent(sessionId, defenseCard),
+            state.getEntityByComponent(sessionId, reactiveCard),
             state.CARD_OWNER,
         )?.data.owner.id;
     }
 
+    const attackCard = state.getComponentByRef(sessionId, activeCard.data.activeEffectRef);
+    const defendCard = reactiveCard
+        ? state.getComponentByRef(sessionId, reactiveCard.data.reactiveEffectRef)
+        : undefined;
+
     for (const character of characters) {
-        const priority = owner === character.id
-            ? calculatePriority(sessionId, tauntMultiplier, character, defenseCard)
-            : calculatePriority(sessionId, tauntMultiplier, character, null);
+        const tauntMultiplier = calculateRage(eachRelevantEffect(sessionId, {
+            attacker: enemy,
+            attackCard,
+            defender: character,
+            defendCard,
+        }));
+
+        const priority = calculatePriority(tauntMultiplier, eachRelevantEffect(sessionId, {
+            attacker: enemy,
+            attackCard,
+            defender: character,
+            defendCard: owner === character.id ? defendCard : undefined,
+        }));
 
         priorities.set(
             character,

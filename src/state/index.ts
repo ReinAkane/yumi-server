@@ -202,7 +202,7 @@ export function getEntityWithComponents(
 }
 
 export function getComponents<T extends UnionType>(
-    entity: Entity,
+    entity: Omit<Entity, 'id'>,
     type: T,
 ): readonly Component<T>[] {
     const componentList: readonly Component<T>[] | undefined = (
@@ -277,6 +277,10 @@ export function getEntityRef<T1 extends UnionType>(
 ): EntityRef & RefWithComponent<T1>;
 export function getEntityRef(
     entity: Entity
+): EntityRef;
+export function getEntityRef(
+    entity: Entity,
+    ...types: readonly UnionType[]
 ): EntityRef;
 export function getEntityRef(
     entity: Entity,

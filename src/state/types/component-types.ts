@@ -7,6 +7,7 @@ export const ACTION_DECK = 'action deck';
 export const POSITION = 'position';
 export const HAND = 'hand';
 export const ATTACKER = 'attacker';
+export const COMBAT_EFFECT = 'combat effect';
 export const ACTION_CARD = 'action card';
 export const BONUS_DAMAGE = 'action - bonus damage';
 export const DAMAGE_REDUCTION = 'action - reduce damage';
@@ -17,12 +18,14 @@ export const RAGE = 'action - rage';
 export const ATTACK = 'action - attack';
 export const CANCEL_ATTACKS = 'action - cancel attacks';
 export const ARMOR_PENETRATION = 'action - armor penetration';
+export const POSITION_CARD = 'position card';
 
 export type UnionType = typeof COMBAT_STATUS | typeof ENEMY_STATUS | typeof PLAYER_STATUS |
     typeof CHARACTER_STATUS | typeof HEALTH | typeof ACTION_DECK | typeof POSITION |
-    typeof HAND | typeof ATTACKER | typeof ACTION_CARD | typeof BONUS_DAMAGE |
-    typeof DAMAGE_REDUCTION | typeof CARD_OWNER | typeof THREAT | typeof TAUNT | typeof RAGE |
-    typeof ATTACK | typeof CANCEL_ATTACKS | typeof ARMOR_PENETRATION;
+    typeof HAND | typeof ATTACKER | typeof COMBAT_EFFECT | typeof ACTION_CARD |
+    typeof BONUS_DAMAGE | typeof DAMAGE_REDUCTION | typeof CARD_OWNER | typeof THREAT |
+     typeof TAUNT | typeof RAGE | typeof ATTACK | typeof CANCEL_ATTACKS | typeof ARMOR_PENETRATION |
+     typeof POSITION_CARD;
 
 export const ALL_TYPES: UnionType[] = [
     COMBAT_STATUS,
@@ -34,6 +37,7 @@ export const ALL_TYPES: UnionType[] = [
     POSITION,
     HAND,
     ATTACKER,
+    COMBAT_EFFECT,
     ACTION_CARD,
     BONUS_DAMAGE,
     DAMAGE_REDUCTION,
@@ -44,4 +48,5 @@ export const ALL_TYPES: UnionType[] = [
     ATTACK,
     CANCEL_ATTACKS,
     ARMOR_PENETRATION,
+    POSITION_CARD,
 ];

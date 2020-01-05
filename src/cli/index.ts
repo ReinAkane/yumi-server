@@ -44,7 +44,7 @@ function displayPosition(entity: state.Entity): string {
     if (position !== null) {
         const currentCard = state.getComponentByRef(sessionId, position.data.currentCardRef);
 
-        return ` currently ${gamedata.getActionCard(currentCard.data.dataId).positionDescription}`;
+        return ` currently ${gamedata.getPositionCard(currentCard.data.dataId).name}`;
         // nothing yet
     }
 

@@ -1,4 +1,5 @@
 import * as components from '../state/types';
+import { Prefab } from '../state/prefabs';
 
 export type CharacterData = {
     readonly id: string;
@@ -27,7 +28,11 @@ export type EnemyData = {
 export type ActionCardData = {
     readonly id: string;
     readonly name: string;
-    readonly positionDescription: string;
-    readonly attackPrefab: readonly components.ComponentData[];
-    readonly defendPrefab: readonly components.ComponentData[];
+    readonly prefab: Prefab<typeof components.ACTION_CARD>;
+};
+
+export type PositionCardData = {
+    readonly id: string;
+    readonly name: string;
+    readonly prefab: Prefab<typeof components.POSITION_CARD>;
 };

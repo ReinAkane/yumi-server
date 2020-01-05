@@ -36,12 +36,12 @@ export type Position = {
     readonly type: typeof types.POSITION;
     readonly stage: 0 | 1 | 2;
     readonly allCardRefs: readonly [
-        readonly ComponentRef<'action card'>[],
-        readonly ComponentRef<'action card'>[],
-        readonly ComponentRef<'action card'>[],
+        readonly ComponentRef<'position card'>[],
+        readonly ComponentRef<'position card'>[],
+        readonly ComponentRef<'position card'>[],
     ]
     readonly turnsInStage: number;
-    readonly currentCardRef: ComponentRef<'action card'>;
+    readonly currentCardRef: ComponentRef<'position card'>;
 };
 
 export type Hand = {
@@ -54,10 +54,17 @@ export type Attacker = {
     readonly baseDamage: number;
 };
 
-export type ActionCard = {
-    readonly type: typeof types.ACTION_CARD;
+export type CombatEffect = {
+    readonly type: typeof types.COMBAT_EFFECT;
+    readonly universalRef: EntityRef;
     readonly attackRef: EntityRef;
     readonly defendRef: EntityRef;
+};
+
+export type ActionCard = {
+    readonly type: typeof types.ACTION_CARD;
+    readonly activeEffectRef: ComponentRef<typeof types.COMBAT_EFFECT>;
+    readonly reactiveEffectRef: ComponentRef<typeof types.COMBAT_EFFECT>;
     readonly dataId: string;
 };
 
@@ -104,6 +111,12 @@ export type ArmorPenetration = {
     readonly multiplier: number;
 };
 
+export type PositionCard = {
+    readonly type: typeof types.POSITION_CARD;
+    readonly dataId: string;
+    readonly effectRef: ComponentRef<typeof types.COMBAT_EFFECT>;
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -115,6 +128,7 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.POSITION ? Position :
     T extends typeof types.HAND ? Hand :
     T extends typeof types.ATTACKER ? Attacker :
+    T extends typeof types.COMBAT_EFFECT ? CombatEffect :
     T extends typeof types.ACTION_CARD ? ActionCard :
     T extends typeof types.BONUS_DAMAGE ? BonusDamage :
     T extends typeof types.DAMAGE_REDUCTION ? DamageReduction :
@@ -125,5 +139,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.ATTACK ? Attack :
     T extends typeof types.CANCEL_ATTACKS ? CancelAttacks :
     T extends typeof types.ARMOR_PENETRATION ? ArmorPenetration :
+    T extends typeof types.POSITION_CARD ? PositionCard :
     never;
 /* eslint-enable @typescript-eslint/indent */
