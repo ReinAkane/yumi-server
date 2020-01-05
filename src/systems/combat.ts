@@ -8,6 +8,7 @@ import * as attack from './attack';
 import * as cards from './cards';
 import * as targetting from './targetting';
 import * as buffs from './buffs';
+import * as ownership from './ownership';
 
 // the combat system is the overarching system to handle any session in combat
 export function inCombat(sessionId: string): boolean {
@@ -75,7 +76,7 @@ export function beginCombat(
         ));
     }
 
-    state.createEntity(
+    const enemy = state.createEntity(
         sessionId,
         {
             type: 'enemy status',
@@ -93,6 +94,8 @@ export function beginCombat(
         decks.createDeck(enemyCardRefs),
     );
 
+    ownership.applySelfOwnership(sessionId, enemy);
+
     const playerActionCardRefs: state.ComponentRef<'action card'>[] = [];
 
     for (const characterId of characterIds) {
@@ -106,17 +109,12 @@ export function beginCombat(
             ),
         );
 
-        for (const cardDataId of characterData.actionCards) {
-            let cardEntity = cards.createCard(sessionId, cardDataId);
+        ownership.applySelfOwnership(sessionId, characterEntity);
 
-            cardEntity = state.addComponents(
-                sessionId,
-                cardEntity,
-                {
-                    type: state.CARD_OWNER,
-                    owner: state.getEntityRef(characterEntity, 'health', 'attacker'),
-                },
-            );
+        for (const cardDataId of characterData.actionCards) {
+            const cardEntity = cards.createCard(sessionId, cardDataId);
+
+            ownership.applyCardOwnership(sessionId, characterEntity, cardEntity);
 
             playerActionCardRefs.push(state.getComponentRef(
                 state.getComponent(cardEntity, 'action card'),
@@ -421,10 +419,7 @@ export function playerDefend(sessionId: string, defendCardId: string | null): st
 
     // run damage system
     let defenseEntity: state.Entity & state.WithComponent<'action card'> | undefined;
-    if (defenseCard && state.getComponent(
-        state.getEntityByComponent(sessionId, defenseCard),
-        state.CARD_OWNER,
-    )?.data.owner.id === target.id) {
+    if (defenseCard) {
         defenseEntity = state.getEntityByComponent(sessionId, defenseCard);
     }
 

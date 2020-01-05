@@ -1,16 +1,62 @@
 import {
     Entity,
     WithComponent,
+    EntityRef,
     Component,
     ATTACKER,
     COMBAT_EFFECT,
     HEALTH,
     POSITION,
+    LINK_EFFECT,
     getEntityByRef,
     getFreshComponent,
     getFreshComponents,
     getComponentByRef,
 } from '../state';
+import { matchConditions, MatchOptions } from './conditionals';
+
+function* eachLinkedEntity(
+    sessionId: string,
+    ref: EntityRef,
+    matchOptions?: MatchOptions,
+): Generator<Entity> {
+    const entity = getEntityByRef<never>(sessionId, ref);
+
+    if (matchOptions === undefined || matchConditions(sessionId, entity, matchOptions)) {
+        yield entity;
+
+        for (const link of getFreshComponents(sessionId, entity, LINK_EFFECT)) {
+            yield* eachLinkedEntity(sessionId, link.data.ref, matchOptions);
+        }
+    }
+}
+
+export function* allEntities(
+    sessionId: string,
+    effect: Component<typeof COMBAT_EFFECT>,
+): Generator<Entity> {
+    yield* eachLinkedEntity(sessionId, effect.data.attackRef);
+    yield* eachLinkedEntity(sessionId, effect.data.defendRef);
+    yield* eachLinkedEntity(sessionId, effect.data.universalRef);
+}
+
+function* attackerEntities(
+    sessionId: string,
+    effect: Component<typeof COMBAT_EFFECT>,
+    matchOptions: MatchOptions,
+): Generator<Entity> {
+    yield* eachLinkedEntity(sessionId, effect.data.attackRef, matchOptions);
+    yield* eachLinkedEntity(sessionId, effect.data.universalRef, matchOptions);
+}
+
+function* defenderEntities(
+    sessionId: string,
+    effect: Component<typeof COMBAT_EFFECT>,
+    matchOptions: MatchOptions,
+): Generator<Entity> {
+    yield* eachLinkedEntity(sessionId, effect.data.defendRef, matchOptions);
+    yield* eachLinkedEntity(sessionId, effect.data.universalRef, matchOptions);
+}
 
 export function* eachRelevantEffect(
     sessionId: string,
@@ -28,6 +74,13 @@ export function* eachRelevantEffect(
         defendCard,
     } = participants;
 
+    const attackerMatchOptions: MatchOptions = {
+        actor: attacker,
+    };
+    const defenderMatchOptions: MatchOptions = {
+        actor: defender,
+    };
+
     if (undefined !== attacker) {
         const position = getFreshComponent(sessionId, attacker, POSITION);
 
@@ -35,13 +88,11 @@ export function* eachRelevantEffect(
             const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
             const positionEffect = getComponentByRef(sessionId, positionCard.data.effectRef);
 
-            yield getEntityByRef<never>(sessionId, positionEffect.data.attackRef);
-            yield getEntityByRef<never>(sessionId, positionEffect.data.universalRef);
+            yield* attackerEntities(sessionId, positionEffect, attackerMatchOptions);
         }
 
         for (const passive of getFreshComponents(sessionId, attacker, COMBAT_EFFECT)) {
-            yield getEntityByRef<never>(sessionId, passive.data.attackRef);
-            yield getEntityByRef<never>(sessionId, passive.data.universalRef);
+            yield* attackerEntities(sessionId, passive, attackerMatchOptions);
         }
     }
 
@@ -52,23 +103,19 @@ export function* eachRelevantEffect(
             const positionCard = getComponentByRef(sessionId, position.data.currentCardRef);
             const positionEffect = getComponentByRef(sessionId, positionCard.data.effectRef);
 
-            yield getEntityByRef<never>(sessionId, positionEffect.data.defendRef);
-            yield getEntityByRef<never>(sessionId, positionEffect.data.universalRef);
+            yield* defenderEntities(sessionId, positionEffect, defenderMatchOptions);
         }
 
         for (const passive of getFreshComponents(sessionId, defender, COMBAT_EFFECT)) {
-            yield getEntityByRef<never>(sessionId, passive.data.defendRef);
-            yield getEntityByRef<never>(sessionId, passive.data.universalRef);
+            yield* defenderEntities(sessionId, passive, defenderMatchOptions);
         }
     }
 
     if (undefined !== attackCard) {
-        yield getEntityByRef<never>(sessionId, attackCard.data.attackRef);
-        yield getEntityByRef<never>(sessionId, attackCard.data.universalRef);
+        yield* attackerEntities(sessionId, attackCard, attackerMatchOptions);
     }
 
     if (undefined !== defendCard) {
-        yield getEntityByRef<never>(sessionId, defendCard.data.defendRef);
-        yield getEntityByRef<never>(sessionId, defendCard.data.universalRef);
+        yield* defenderEntities(sessionId, defendCard, attackerMatchOptions);
     }
 }

@@ -132,6 +132,16 @@ export type ApplyBuff = {
     readonly applyTo: 'attacker' | 'defender';
 };
 
+export type LinkEffect = {
+    readonly type: typeof types.LINK_EFFECT;
+    readonly ref: EntityRef;
+};
+
+export type IfOwner = {
+    readonly type: typeof types.IF_OWNER;
+    readonly shouldBeOwner: boolean;
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -157,5 +167,7 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.POSITION_CARD ? PositionCard :
     T extends typeof types.BUFF ? Buff :
     T extends typeof types.APPLY_BUFF ? ApplyBuff :
+    T extends typeof types.LINK_EFFECT ? LinkEffect :
+    T extends typeof types.IF_OWNER ? IfOwner :
     never;
 /* eslint-enable @typescript-eslint/indent */

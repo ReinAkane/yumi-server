@@ -11,10 +11,13 @@ function createActionCard(dataId: string, options: {
     reactiveAttackEffects?: components.ComponentData[],
     reactiveDefendEffects?: components.ComponentData[],
     reactiveUniversalEffects?: components.ComponentData[],
+    links?: {
+        [entityId: string]: components.ComponentData[],
+    }
 }): Prefab<typeof components.ACTION_CARD> {
     let nextId = 0;
 
-    return {
+    const result: Prefab<typeof components.ACTION_CARD> = {
         root: {
             components: {
                 [components.ACTION_CARD]: createComponents<typeof components.ACTION_CARD>({
@@ -124,6 +127,25 @@ function createActionCard(dataId: string, options: {
             })),
         },
     };
+    const links = options?.links || {};
+
+    for (const linkId of Object.keys(links)) {
+        if (result[linkId] !== undefined) {
+            throw new Error(`Cannot have duplicate ids in prefab. Problematic id: ${linkId}`);
+        }
+
+        result[linkId] = {
+            components: componentsToComponentMap(links[linkId].map((data) => {
+                nextId += 1;
+                return {
+                    id: String(nextId),
+                    data,
+                };
+            })),
+        };
+    }
+
+    return result;
 }
 
 const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardData, 'id'>>({
@@ -132,6 +154,9 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
         prefab: createActionCard('basic', {
             activeAttackEffects: createComponentData({
                 type: components.ATTACK,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
         }),
     },
@@ -143,17 +168,26 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
             }, {
                 type: components.RAGE,
                 tauntMultiplier: 0.5,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
             activeDefendEffects: createComponentData({
                 type: components.DAMAGE_REDUCTION,
                 subtract: 5,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
             reactiveDefendEffects: createComponentData({
-                type: components.DAMAGE_REDUCTION,
-                subtract: 5,
-            }, {
                 type: components.TAUNT,
                 modifier: 1,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
+            }, {
+                type: components.DAMAGE_REDUCTION,
+                subtract: 5,
             }),
         }),
     },
@@ -168,10 +202,16 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
             }, {
                 type: components.RAGE,
                 tauntMultiplier: 1.5,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
             reactiveDefendEffects: createComponentData({
                 type: components.THREAT,
                 modifier: 1,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
         }),
     },
@@ -180,16 +220,25 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
         prefab: createActionCard('vengeance', {
             activeAttackEffects: createComponentData({
                 type: components.ATTACK,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
             reactiveAttackEffects: createComponentData({
                 type: components.ATTACK,
             }, {
                 type: components.BONUS_DAMAGE,
                 add: -5,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
             reactiveDefendEffects: createComponentData({
                 type: components.TAUNT,
                 modifier: 0.5,
+            }, {
+                type: components.IF_OWNER,
+                shouldBeOwner: true,
             }),
         }),
     },

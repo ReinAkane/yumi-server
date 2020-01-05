@@ -59,14 +59,6 @@ export function selectTarget(
     }
 
     const priorities: Map<state.Entity, number> = new Map();
-    let owner: string | null | undefined = null;
-    if (reactiveCard) {
-        owner = state.getComponent(
-            state.getEntityByComponent(sessionId, reactiveCard),
-            state.CARD_OWNER,
-        )?.data.owner.id;
-    }
-
     const attackCard = state.getComponentByRef(sessionId, activeCard.data.activeEffectRef);
     const defendCard = reactiveCard
         ? state.getComponentByRef(sessionId, reactiveCard.data.reactiveEffectRef)
@@ -84,7 +76,7 @@ export function selectTarget(
             attacker: enemy,
             attackCard,
             defender: character,
-            defendCard: owner === character.id ? defendCard : undefined,
+            defendCard,
         }));
 
         priorities.set(
