@@ -342,6 +342,7 @@ export function playerPrepare(sessionId: string, cardIds: string[]): string | nu
         throw new Error('Not in combat.');
     }
     const hand = state.getComponent(player, 'hand');
+    const cardsInHand = hand.data.cardRefs.length;
     const playerDeck = state.getComponent(player, 'action deck');
 
     for (const cardId of cardIds) {
@@ -359,7 +360,7 @@ export function playerPrepare(sessionId: string, cardIds: string[]): string | nu
         sessionId,
         state.refreshComponent(sessionId, playerDeck),
         state.refreshComponent(sessionId, hand),
-        cardIds.length + 2,
+        cardIds.length + Math.min(2, Math.max(0, 5 - cardsInHand)),
     );
 
     // select card for enemy to attack with
