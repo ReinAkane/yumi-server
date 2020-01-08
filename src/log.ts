@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const LOG_PATH = path.join(__dirname, '..', 'log.txt');
+const LOG_PATH = path.join(__dirname, '..', 'logs');
 
 function fileExists(filepath: string): boolean {
     try {
@@ -12,8 +12,17 @@ function fileExists(filepath: string): boolean {
     }
 }
 
-export function log(msg: string): void {
-    const currentContents = fileExists(LOG_PATH) ? fs.readFileSync(LOG_PATH, 'utf8') : '';
+if (!fileExists(LOG_PATH)) {
+    fs.mkdirSync(LOG_PATH);
+}
 
-    fs.writeFileSync(LOG_PATH, `${currentContents}${new Date(Date.now()).toISOString()} - ${msg}\n`);
+export function log(msg: string, stream: string = 'default'): void {
+    if (stream !== 'default') {
+        log(msg);
+    }
+
+    const logPath = path.join(LOG_PATH, `${stream}.txt`);
+    const currentContents = fileExists(logPath) ? fs.readFileSync(logPath, 'utf8') : '';
+
+    fs.writeFileSync(logPath, `${currentContents}${new Date(Date.now()).toISOString()} - ${msg}\n`);
 }

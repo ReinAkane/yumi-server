@@ -1,31 +1,34 @@
 import * as state from '../state';
 import { chance } from '../chance';
 import { eachRelevantEffect } from './combat-effects';
+import { log } from '../log';
 
-function calculatePriority(
-    tauntMultiplier: number,
-    effects: Iterable<state.Entity>,
-): number {
-    let priority = chance.floating({
-        min: 0,
-        max: 0.1,
-    });
+function calculateTaunt(effects: Iterable<state.Entity>): number {
+    let taunt = 0;
 
     for (const entity of effects) {
-        for (const taunt of state.getComponents(entity, state.TAUNT)) {
-            priority += taunt.data.modifier * tauntMultiplier;
-        }
-
-        for (const threat of state.getComponents(entity, state.THREAT)) {
-            priority += threat.data.modifier;
+        for (const component of state.getComponents(entity, state.TAUNT)) {
+            taunt += component.data.modifier;
         }
     }
 
-    return priority;
+    return taunt;
+}
+
+function calculateThreat(effects: Iterable<state.Entity>): number {
+    let threat = 0;
+
+    for (const entity of effects) {
+        for (const component of state.getComponents(entity, state.THREAT)) {
+            threat += component.data.modifier;
+        }
+    }
+
+    return threat;
 }
 
 function calculateRage(effects: Iterable<state.Entity>): number {
-    let rage = 1;
+    let rage = 0.5;
 
     for (const entity of effects) {
         for (const rageComponent of state.getComponents(entity, state.RAGE)) {
@@ -47,6 +50,7 @@ export function selectTarget(
     activeCard: state.Component<'action card'>,
     reactiveCard: state.Component<'action card'> | null,
 ): state.Entity & state.WithComponent<'character status' | 'health'> {
+    log('Selecting target...', 'targetting');
     const characters = state.getEntitiesWithComponents(sessionId, 'character status', 'health');
     const enemy = state.getEntityWithComponents(sessionId, 'enemy status', 'attacker');
 
@@ -65,27 +69,45 @@ export function selectTarget(
         : undefined;
 
     for (const character of characters) {
+        log(`Calculate priority for ${state.getComponent(character, 'character status').data.dataId}...`, 'targetting');
         const tauntMultiplier = calculateRage(eachRelevantEffect(sessionId, {
             attacker: enemy,
             attackCard,
             defender: character,
             defendCard,
         }));
-
-        const priority = calculatePriority(tauntMultiplier, eachRelevantEffect(sessionId, {
+        log(`    Rage: ${tauntMultiplier}`, 'targetting');
+        const taunt = calculateTaunt(eachRelevantEffect(sessionId, {
             attacker: enemy,
             attackCard,
             defender: character,
             defendCard,
         }));
+        log(`    Taunt: ${taunt}`, 'targetting');
+        const threat = calculateThreat(eachRelevantEffect(sessionId, {
+            attacker: enemy,
+            attackCard,
+            defender: character,
+            defendCard,
+        }));
+        log(`    Threat: ${threat}`, 'targetting');
+        const priority = chance.floating({
+            min: 0,
+            max: 0.1,
+        });
+        log(`    Random seed: ${priority}`, 'targetting');
+        const result = priority + threat + taunt * tauntMultiplier;
+        log(`    Final priority: ${result}`, 'targetting');
 
         priorities.set(
             character,
-            priority,
+            result,
         );
     }
 
     const target = characters.sort(sortByPriority(priorities))[0];
+
+    log(`Final target: ${state.getComponent(target, 'character status').data.dataId}`, 'targetting');
 
     return target;
 }

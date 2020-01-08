@@ -166,9 +166,6 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
             activeAttackEffects: createComponentData({
                 type: components.ATTACK,
             }, {
-                type: components.RAGE,
-                tauntMultiplier: 0.5,
-            }, {
                 type: components.IF_OWNER,
                 shouldBeOwner: true,
             }),
@@ -199,9 +196,6 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
             }, {
                 type: components.BONUS_DAMAGE,
                 add: 5,
-            }, {
-                type: components.RAGE,
-                tauntMultiplier: 1.5,
             }, {
                 type: components.IF_OWNER,
                 shouldBeOwner: true,
