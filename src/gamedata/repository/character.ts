@@ -131,7 +131,11 @@ const characters: Map<string, CharacterData> = mapFromObject({
             'elf.stinging-shot',
             'elf.double-shot',
         ],
-        positionCards: [['advance'], ['advance', 'attack'], ['attack', 'attack', 'attack', 'attack', 'basic']],
+        positionCards: [
+            ['dps.initial'],
+            ['dps.advancing-a', 'dps.advancing-b'],
+            ['dps.idle', 'dps.attack-a', 'dps.attack-b', 'dps.all-in-a', 'dps.all-in-b'],
+        ],
         prefab: createCharacter('elf', {
             maxHp: 30,
             damage: 5,

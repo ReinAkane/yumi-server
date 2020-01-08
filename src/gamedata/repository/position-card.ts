@@ -378,7 +378,7 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 type: components.DAMAGE_REDUCTION,
                 subtract: 3,
             }),
-            tags: ['defensive', 'beneficial'],
+            tags: ['defensive'],
         }),
     },
     'tank.taunt-b': {
@@ -391,7 +391,7 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 type: components.DAMAGE_REDUCTION,
                 subtract: 6,
             }),
-            tags: ['defensive', 'beneficial'],
+            tags: ['defensive'],
         }),
     },
     'tank.bracing': {
@@ -401,7 +401,7 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 type: components.DAMAGE_REDUCTION,
                 subtract: 8,
             }),
-            tags: ['defensive', 'beneficial'],
+            tags: ['defensive'],
         }),
     },
     'tank.attack-a': {
@@ -418,6 +418,7 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 type: components.THREAT,
                 modifier: 0.5,
             }),
+            tags: ['offensive'],
         }),
     },
     'tank.attack-b': {
@@ -454,6 +455,104 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                     modifier: 0.25,
                 }),
             },
+            tags: ['offensive'],
+        }),
+    },
+
+    // -- DPS --
+    'dps.initial': {
+        name: 'advancing',
+        prefab: createPositionCard('dps.initial', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 1,
+            }),
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -1,
+            }),
+        }),
+    },
+    'dps.advancing-a': {
+        name: 'advancing',
+        prefab: createPositionCard('dps.advancing-a', {
+        }),
+    },
+    'dps.advancing-b': {
+        name: 'aggressively advancing',
+        prefab: createPositionCard('dps.advancing-b', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 2,
+            }),
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 1,
+            }),
+        }),
+    },
+    'dps.idle': {
+        name: 'ready for combat',
+        prefab: createPositionCard('dps.idle', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 1,
+            }),
+        }),
+    },
+    'dps.attack-a': {
+        name: 'in position to attack',
+        prefab: createPositionCard('dps.attack-a', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 3,
+            }),
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 1,
+            }),
+        }),
+    },
+    'dps.attack-b': {
+        name: 'in position to attack',
+        prefab: createPositionCard('dps.attack-b', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 4,
+            }),
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 1,
+            }),
+        }),
+    },
+    'dps.all-in-a': {
+        name: 'going all in',
+        prefab: createPositionCard('dps.all-in-a', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 5,
+            }),
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 2,
+            }),
+        }),
+    },
+    'dps.all-in-b': {
+        name: 'going all in',
+        prefab: createPositionCard('dps.all-in-b', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 3,
+            }, {
+                type: components.ARMOR_PENETRATION,
+                multiplier: 0.5,
+            }),
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 2,
+            }),
         }),
     },
 });
