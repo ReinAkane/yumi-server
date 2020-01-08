@@ -151,7 +151,11 @@ const characters: Map<string, CharacterData> = mapFromObject({
             'jeanne.shield-bash',
             'jeanne.heavy-strike',
         ],
-        positionCards: [['advance'], ['advance', 'defend'], ['defend', 'defend', 'defend', 'basic', 'attack']],
+        positionCards: [
+            ['tank.initial'],
+            ['tank.advancing-a', 'tank.advancing-b'],
+            ['tank.taunt-a', 'tank.taunt-b', 'tank.bracing', 'tank.attack-a', 'tank.attack-b'],
+        ],
         prefab: createCharacter('jeanne', {
             maxHp: 40,
             damage: 4,

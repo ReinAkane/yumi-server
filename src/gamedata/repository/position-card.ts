@@ -329,6 +329,133 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
             },
         }),
     },
+
+    // -- tank --
+    'tank.initial': {
+        name: 'advancing',
+        prefab: createPositionCard('tank.initial', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -1,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: -4,
+            }),
+        }),
+    },
+    'tank.advancing-a': {
+        name: 'cautiously advancing',
+        prefab: createPositionCard('tank.advancing-a', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: -1,
+            }),
+            defendEffects: createComponentData({
+                type: components.DAMAGE_REDUCTION,
+                subtract: 2,
+            }),
+            tags: ['defensive'],
+        }),
+    },
+    'tank.advancing-b': {
+        name: 'cautiously advancing',
+        prefab: createPositionCard('tank.advancing-b', {
+            defendEffects: createComponentData({
+                type: components.DAMAGE_REDUCTION,
+                subtract: 1,
+            }),
+            tags: ['defensive', 'beneficial'],
+        }),
+    },
+    'tank.taunt-a': {
+        name: 'pressuring the enemy',
+        prefab: createPositionCard('tank.taunt-a', {
+            defendEffects: createComponentData({
+                type: components.TAUNT,
+                modifier: 1,
+            }, {
+                type: components.DAMAGE_REDUCTION,
+                subtract: 3,
+            }),
+            tags: ['defensive', 'beneficial'],
+        }),
+    },
+    'tank.taunt-b': {
+        name: 'pressuring the enemy',
+        prefab: createPositionCard('tank.taunt-b', {
+            defendEffects: createComponentData({
+                type: components.TAUNT,
+                modifier: 0.5,
+            }, {
+                type: components.DAMAGE_REDUCTION,
+                subtract: 6,
+            }),
+            tags: ['defensive', 'beneficial'],
+        }),
+    },
+    'tank.bracing': {
+        name: 'bracing for impact',
+        prefab: createPositionCard('tank.bracing', {
+            defendEffects: createComponentData({
+                type: components.DAMAGE_REDUCTION,
+                subtract: 8,
+            }),
+            tags: ['defensive', 'beneficial'],
+        }),
+    },
+    'tank.attack-a': {
+        name: 'ready to attack',
+        prefab: createPositionCard('tank.attack-a', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 1,
+            }),
+            defendEffects: createComponentData({
+                type: components.DAMAGE_REDUCTION,
+                subtract: 2,
+            }, {
+                type: components.THREAT,
+                modifier: 0.5,
+            }),
+        }),
+    },
+    'tank.attack-b': {
+        name: 'ready to attack',
+        prefab: createPositionCard('tank.attack-b', {
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 2,
+            }, {
+                type: components.APPLY_BUFF,
+                duration: 2,
+                applyTo: 'attacker',
+                universalRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                attackRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                defendRef: {
+                    id: 'threatDebuff',
+                    withComponents: {},
+                },
+            }),
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 0.5,
+            }),
+            links: {
+                emptyBuff: [],
+                threatDebuff: createComponentData({
+                    type: components.THREAT,
+                    modifier: 0.25,
+                }),
+            },
+        }),
+    },
 });
 
 export function getPositionCard(positionCardId: string): PositionCardData {
