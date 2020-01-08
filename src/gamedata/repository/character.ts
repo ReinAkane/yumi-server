@@ -191,7 +191,11 @@ const characters: Map<string, CharacterData> = mapFromObject({
             'medu.planned-strike',
             'medu.forward-strike',
         ],
-        positionCards: [['advance'], ['advance', 'sneaking'], ['attack', 'attack', 'sneaking', 'sneaking', 'sneaking']],
+        positionCards: [
+            ['assassin.initial'],
+            ['assassin.advancing-a', 'assassin.advancing-b'],
+            ['assassin.sneaking-a', 'assassin.sneaking-b', 'assassin.stumble', 'assassin.in-position-a', 'assassin.in-position-b'],
+        ],
         prefab: createCharacter('medusa', {
             maxHp: 30,
             damage: 5,

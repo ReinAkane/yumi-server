@@ -9,10 +9,13 @@ function createPositionCard(dataId: string, options: {
     defendEffects?: components.ComponentData[],
     universalEffects?: components.ComponentData[],
     tags?: components.PositionCardTag[],
+    links?: {
+        [entityId: string]: components.ComponentData[],
+    }
 }): Prefab<typeof components.POSITION_CARD> {
     let nextId = 0;
 
-    return {
+    const result: Prefab<typeof components.POSITION_CARD> = {
         root: {
             components: {
                 [components.POSITION_CARD]: createComponents <typeof components.POSITION_CARD>({
@@ -75,6 +78,26 @@ function createPositionCard(dataId: string, options: {
             })),
         },
     };
+
+    const links = options?.links || {};
+
+    for (const linkId of Object.keys(links)) {
+        if (result[linkId] !== undefined) {
+            throw new Error(`Cannot have duplicate ids in prefab. Problematic id: ${linkId}`);
+        }
+
+        result[linkId] = {
+            components: componentsToComponentMap(links[linkId].map((data) => {
+                nextId += 1;
+                return {
+                    id: String(nextId),
+                    data,
+                };
+            })),
+        };
+    }
+
+    return result;
 }
 
 const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<PositionCardData, 'id'>>({
@@ -136,6 +159,174 @@ const positionCards: Map<string, PositionCardData> = mapFromObject<Omit<Position
                 modifier: -1,
             }),
             tags: ['beneficial', 'defensive'],
+        }),
+    },
+
+    // -- assassin --
+    'assassin.initial': {
+        name: 'quietly advancing',
+        prefab: createPositionCard('assassin.initial', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -2,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: -5,
+            }),
+            tags: ['defensive'],
+        }),
+    },
+    'assassin.advancing-a': {
+        name: 'quietly advancing',
+        prefab: createPositionCard('assassin.advancing-a', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -2,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: -3,
+            }),
+            tags: ['defensive'],
+        }),
+    },
+    'assassin.advancing-b': {
+        name: 'quietly advancing',
+        prefab: createPositionCard('assassin.advancing-b', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -2,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: -1,
+            }),
+            tags: ['offensive'],
+        }),
+    },
+    'assassin.sneaking-a': {
+        name: 'sneaking around',
+        prefab: createPositionCard('assassin.sneaking-a', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -1,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: -4,
+            }, {
+                type: components.ARMOR_PENETRATION,
+                multiplier: 0.8,
+            }),
+            tags: ['defensive'],
+        }),
+    },
+    'assassin.sneaking-b': {
+        name: 'sneaking around',
+        prefab: createPositionCard('assassin.sneaking-b', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: -1,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: -2,
+            }, {
+                type: components.ARMOR_PENETRATION,
+                multiplier: 0.9,
+            }),
+            tags: ['defensive'],
+        }),
+    },
+    'assassin.stumble': {
+        name: 'stumbling',
+        prefab: createPositionCard('assassin.stumble', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: +1,
+            }, {
+                type: components.BONUS_DAMAGE,
+                add: 5,
+            }, {
+                type: components.DAMAGE_REDUCTION,
+                subtract: -5,
+            }),
+            tags: ['detrimental'],
+        }),
+    },
+    'assassin.in-position-a': {
+        name: 'in position to strike',
+        prefab: createPositionCard('assassin.in-position-a', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 1,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 6,
+            }, {
+                type: components.APPLY_BUFF,
+                duration: 2,
+                applyTo: 'attacker',
+                universalRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                attackRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                defendRef: {
+                    id: 'threatDebuff',
+                    withComponents: {},
+                },
+            }),
+            tags: ['offensive'],
+            links: {
+                threatDebuff: createComponentData({
+                    type: components.THREAT,
+                    modifier: 1,
+                }),
+                emptyBuff: [],
+            },
+        }),
+    },
+    'assassin.in-position-b': {
+        name: 'in position to strike',
+        prefab: createPositionCard('assassin.in-position-b', {
+            defendEffects: createComponentData({
+                type: components.THREAT,
+                modifier: 1,
+            }),
+            attackEffects: createComponentData({
+                type: components.BONUS_DAMAGE,
+                add: 5,
+            }, {
+                type: components.APPLY_BUFF,
+                duration: 2,
+                applyTo: 'attacker',
+                universalRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                attackRef: {
+                    id: 'emptyBuff',
+                    withComponents: {},
+                },
+                defendRef: {
+                    id: 'threatDebuff',
+                    withComponents: {},
+                },
+            }),
+            tags: ['offensive'],
+            links: {
+                threatDebuff: createComponentData({
+                    type: components.THREAT,
+                    modifier: 1,
+                }),
+                emptyBuff: [],
+            },
         }),
     },
 });
