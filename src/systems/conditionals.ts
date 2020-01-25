@@ -3,6 +3,7 @@ import {
     IF_OWNER,
     CARD_OWNER,
     IF_POSTION,
+    IF_ACTIVE,
     POSITION,
     getFreshComponents,
     getFreshComponent,
@@ -10,7 +11,8 @@ import {
 } from '../state';
 
 export type MatchOptions = {
-    actor?: Entity
+    actor?: Entity;
+    activeActor?: Entity;
 };
 
 function matchOwner(
@@ -26,6 +28,29 @@ function matchOwner(
                 return false;
             }
         } else if (owner !== null && actor !== undefined && owner.data.owner.id === actor.id) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function matchActive(
+    sessionId: string,
+    entity: Entity,
+    options: MatchOptions,
+): boolean {
+    const { actor, activeActor } = options;
+    for (const ifActive of getFreshComponents(sessionId, entity, IF_ACTIVE)) {
+        if (ifActive.data.shouldBeActive) {
+            if (actor === undefined || activeActor === undefined || actor.id !== activeActor.id) {
+                return false;
+            }
+        } else if (
+            actor !== undefined
+            && activeActor !== undefined
+            && actor.id === activeActor.id
+        ) {
             return false;
         }
     }
@@ -62,5 +87,6 @@ export function matchConditions(
     entity: Entity,
     options: MatchOptions,
 ): boolean {
-    return matchOwner(sessionId, entity, options) && matchPosition(sessionId, entity, options);
+    return matchOwner(sessionId, entity, options) && matchPosition(sessionId, entity, options)
+        && matchActive(sessionId, entity, options);
 }

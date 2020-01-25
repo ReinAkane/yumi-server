@@ -121,6 +121,7 @@ export function* eachRelevantEffect(
         defender?: Entity & WithComponent<typeof HEALTH>,
         defendCard?: Component<typeof COMBAT_EFFECT>,
     },
+    attackerActive: boolean,
 ): Generator<Entity> {
     let defendPositionMultiplier = 1;
     let attackPositionMultiplier = 1;
@@ -128,6 +129,7 @@ export function* eachRelevantEffect(
         attacker,
         defender,
     } = participants;
+    const activeActor = attackerActive ? attacker : defender;
 
     for (const entity of eachNonPositionAttackerEffect(sessionId, participants)) {
         yield entity;
@@ -140,6 +142,7 @@ export function* eachRelevantEffect(
     if (undefined !== attacker) {
         const attackerMatchOptions: MatchOptions = {
             actor: attacker,
+            activeActor,
         };
 
         for (let i = 0; i < attackPositionMultiplier; i += 1) {
@@ -165,6 +168,7 @@ export function* eachRelevantEffect(
     if (undefined !== defender) {
         const defenderMatchOptions: MatchOptions = {
             actor: defender,
+            activeActor,
         };
 
         for (let i = 0; i < defendPositionMultiplier; i += 1) {

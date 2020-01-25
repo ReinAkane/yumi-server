@@ -75,21 +75,21 @@ export function selectTarget(
             attackCard,
             defender: character,
             defendCard,
-        }));
+        }, true));
         log(`    Rage: ${tauntMultiplier}`, 'targetting');
         const taunt = calculateTaunt(eachRelevantEffect(sessionId, {
             attacker: enemy,
             attackCard,
             defender: character,
             defendCard,
-        }));
+        }, true));
         log(`    Taunt: ${taunt}`, 'targetting');
         const threat = calculateThreat(eachRelevantEffect(sessionId, {
             attacker: enemy,
             attackCard,
             defender: character,
             defendCard,
-        }));
+        }, true));
         log(`    Threat: ${threat}`, 'targetting');
         const priority = chance.floating({
             min: 0,

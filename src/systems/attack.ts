@@ -21,23 +21,23 @@ function runAttacks(sessionId: string, attackInfo: {
     defender: state.Entity & state.WithComponent<'health'>,
     attackCard?: state.Component<'combat effect'>,
     defendCard?: state.Component<'combat effect'>,
-}): number {
+}, attackerActive: boolean): number {
     let remainingHp = state.getComponent(attackInfo.defender, 'health').data.hp;
 
-    if (!shouldCancelAttacks(eachRelevantEffect(sessionId, attackInfo))) {
-        for (const entity of eachRelevantEffect(sessionId, attackInfo)) {
+    if (!shouldCancelAttacks(eachRelevantEffect(sessionId, attackInfo, attackerActive))) {
+        for (const entity of eachRelevantEffect(sessionId, attackInfo, attackerActive)) {
             for (const _ of state.getComponents(entity, state.ATTACK)) {
                 remainingHp = damage.run(
                     attackInfo.attacker,
                     attackInfo.defender,
-                    eachRelevantEffect(sessionId, attackInfo),
+                    eachRelevantEffect(sessionId, attackInfo, attackerActive),
                 );
 
                 buffs.applyBuffs(
                     sessionId,
                     attackInfo.attacker,
                     attackInfo.defender,
-                    eachRelevantEffect(sessionId, attackInfo),
+                    eachRelevantEffect(sessionId, attackInfo, attackerActive),
                 );
 
                 if (remainingHp <= 0) {
@@ -47,7 +47,7 @@ function runAttacks(sessionId: string, attackInfo: {
         }
     }
 
-    for (const entity of eachRelevantEffect(sessionId, attackInfo)) {
+    for (const entity of eachRelevantEffect(sessionId, attackInfo, attackerActive)) {
         for (const move of state.getComponents(entity, state.MOVE_TO_POSITION)) {
             log(`Enqueueing position with tags ${[...move.data.tags].join(', ')}`);
             enqueueNextPosition(sessionId, attackInfo.attacker, move.data.tags);
@@ -101,7 +101,7 @@ export function run(
         defendCard: reactiveCardEffect,
     };
 
-    const remainingHp = runAttacks(sessionId, attackInfo);
+    const remainingHp = runAttacks(sessionId, attackInfo, true);
 
     if (remainingHp > 0) {
         const retaliateAttacker = state.getComponent(defender, 'attacker');
@@ -116,7 +116,7 @@ export function run(
             };
 
             log('Running retaliation...');
-            runAttacks(sessionId, retaliateInfo);
+            runAttacks(sessionId, retaliateInfo, false);
         }
     }
 }

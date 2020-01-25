@@ -164,6 +164,11 @@ export type DrawActionCard = {
     readonly mustMatch?: 'attacker' | 'defender';
 };
 
+export type IfActive = {
+    readonly type: typeof types.IF_ACTIVE;
+    readonly shouldBeActive: boolean;
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -195,5 +200,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.MOVE_TO_POSITION ? MoveToPosition :
     T extends typeof types.IF_POSTION ? IfPosition :
     T extends typeof types.DRAW_ACTION_CARD ? DrawActionCard :
+    T extends typeof types.IF_ACTIVE ? IfActive :
     never;
 /* eslint-enable @typescript-eslint/indent */
