@@ -22,21 +22,21 @@ export const POSITION_CARD = 'position card';
 export const BUFF = 'buff';
 export const APPLY_BUFF = 'action - apply buff';
 export const LINK_EFFECT = 'action - link effect';
-export const IF_OWNER = 'condition - ownership';
 export const REAPPLY_POSITION = 'action - reapply position';
 export const MOVE_TO_POSITION = 'action - move to position';
 export const IF_POSTION = 'condition - position';
 export const DRAW_ACTION_CARD = 'action - draw action card';
-export const IF_ACTIVE = 'condition - active';
+export const IF_OWNER_IS = 'condition - owner matches';
+export const IF_TEAM_IS = 'condition - team matches';
 
 export type UnionType = typeof COMBAT_STATUS | typeof ENEMY_STATUS | typeof PLAYER_STATUS |
     typeof CHARACTER_STATUS | typeof HEALTH | typeof ACTION_DECK | typeof POSITION |
     typeof HAND | typeof ATTACKER | typeof COMBAT_EFFECT | typeof ACTION_CARD |
     typeof BONUS_DAMAGE | typeof DAMAGE_REDUCTION | typeof CARD_OWNER | typeof THREAT |
     typeof TAUNT | typeof RAGE | typeof ATTACK | typeof CANCEL_ATTACKS | typeof ARMOR_PENETRATION |
-    typeof POSITION_CARD | typeof BUFF | typeof APPLY_BUFF | typeof LINK_EFFECT | typeof IF_OWNER |
+    typeof POSITION_CARD | typeof BUFF | typeof APPLY_BUFF | typeof LINK_EFFECT |
     typeof REAPPLY_POSITION | typeof MOVE_TO_POSITION | typeof IF_POSTION |
-    typeof DRAW_ACTION_CARD | typeof IF_ACTIVE;
+    typeof DRAW_ACTION_CARD | typeof IF_OWNER_IS | typeof IF_TEAM_IS;
 
 export const ALL_TYPES: UnionType[] = [
     COMBAT_STATUS,
@@ -63,10 +63,10 @@ export const ALL_TYPES: UnionType[] = [
     BUFF,
     APPLY_BUFF,
     LINK_EFFECT,
-    IF_OWNER,
     REAPPLY_POSITION,
     MOVE_TO_POSITION,
     IF_POSTION,
     DRAW_ACTION_CARD,
-    IF_ACTIVE,
+    IF_OWNER_IS,
+    IF_TEAM_IS,
 ];

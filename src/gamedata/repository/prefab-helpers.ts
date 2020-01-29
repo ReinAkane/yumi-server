@@ -28,3 +28,17 @@ export function createComponentData<T extends UnionType>(
 ): ComponentData<T>[] {
     return items;
 }
+
+
+export function componentDataToComponentMap(items: ComponentData[] = []): {
+    readonly [T in UnionType]?: readonly Component<T>[];
+} {
+    let nextId = 0;
+    return componentsToComponentMap(items.map((data) => {
+        nextId += 1;
+        return {
+            id: String(nextId),
+            data,
+        };
+    }));
+}

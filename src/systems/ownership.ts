@@ -3,7 +3,6 @@ import {
     WithComponent,
     EntityRef,
     RefWithComponent,
-    getComponent,
     getFreshComponent,
     getFreshComponents,
     getEntityRef,
@@ -14,12 +13,10 @@ import {
     CARD_OWNER,
     HEALTH,
     ATTACKER,
-    COMBAT_EFFECT,
     POSITION,
-    ACTION_CARD,
     ACTION_DECK,
 } from '../state';
-import { allEntities } from './combat-effects';
+import { allEntities } from './combat-effects/events';
 
 function updateOwner(
     sessionId: string,
@@ -40,25 +37,16 @@ function updateOwner(
     }
 }
 
-export function applyCardOwnership(
+export function applyOwnership(
     sessionId: string,
     owner: Entity & WithComponent<typeof HEALTH | typeof ATTACKER>,
-    cardEntity: Entity & WithComponent<typeof ACTION_CARD>,
+    target: Entity,
 ): void {
     const ref = getEntityRef(owner, HEALTH, ATTACKER);
 
-    updateOwner(sessionId, cardEntity, ref);
+    updateOwner(sessionId, target, ref);
 
-    const card = getComponent(cardEntity, ACTION_CARD);
-    const activeEffect = getComponentByRef(sessionId, card.data.activeEffectRef);
-
-    for (const entity of allEntities(sessionId, activeEffect)) {
-        updateOwner(sessionId, entity, ref);
-    }
-
-    const reactiveEffect = getComponentByRef(sessionId, card.data.reactiveEffectRef);
-
-    for (const entity of allEntities(sessionId, reactiveEffect)) {
+    for (const entity of allEntities(sessionId, getEntityRef(target))) {
         updateOwner(sessionId, entity, ref);
     }
 }
@@ -71,10 +59,8 @@ export function applySelfOwnership(
 
     updateOwner(sessionId, target, ref);
 
-    for (const effect of getFreshComponents(sessionId, target, COMBAT_EFFECT)) {
-        for (const entity of allEntities(sessionId, effect)) {
-            updateOwner(sessionId, entity, ref);
-        }
+    for (const entity of allEntities(sessionId, getEntityRef(target))) {
+        updateOwner(sessionId, entity, ref);
     }
 
     const position = getFreshComponent(sessionId, target, POSITION);
@@ -83,9 +69,8 @@ export function applySelfOwnership(
         for (const stage of position.data.allCardRefs) {
             for (const cardRef of stage) {
                 const card = getComponentByRef(sessionId, cardRef);
-                const effect = getComponentByRef(sessionId, card.data.effectRef);
 
-                for (const entity of allEntities(sessionId, effect)) {
+                for (const entity of allEntities(sessionId, card.data.effectRef)) {
                     updateOwner(sessionId, entity, ref);
                 }
             }
@@ -96,7 +81,7 @@ export function applySelfOwnership(
         for (const cardRef of deck.data.cardRefs) {
             const card = getComponentByRef(sessionId, cardRef);
 
-            applyCardOwnership(sessionId, target, getEntityByComponent(sessionId, card));
+            applyOwnership(sessionId, target, getEntityByComponent(sessionId, card));
         }
     }
 }

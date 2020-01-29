@@ -1,3 +1,4 @@
+import { log } from '../log';
 import * as state from '../state';
 
 function applyBonusDamage(damage: number, card: state.Entity): number {
@@ -39,15 +40,19 @@ export function run(
 ): number {
     const effectsCache = [...effects];
 
+    const baseDamage = state.getComponent(attacker, 'attacker').data.baseDamage
+    - state.getComponent(defender, 'health').data.baseArmor;
+
     const maximumDamage = effectsCache.reduce(
         applyBonusDamage,
-        state.getComponent(attacker, 'attacker').data.baseDamage - state.getComponent(defender, 'health').data.baseArmor,
+        baseDamage,
     );
     const armorMultiplier = getArmorMultipier(effectsCache);
     const armor = Math.min(0, effectsCache.reduce(applyDamageReduction, 0));
     const netDamage = Math.max(1, maximumDamage + Math.ceil(armor * armorMultiplier));
 
     let health = state.getComponent(defender, 'health');
+    log(`baseDamage: ${baseDamage}; maximumDamage: ${maximumDamage}; armorMultiplier: ${armorMultiplier}; armor: ${armor}; netDamage: ${netDamage}`, 'attack');
 
     health = state.updateComponent(
         health,

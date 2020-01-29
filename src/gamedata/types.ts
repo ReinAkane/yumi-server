@@ -1,5 +1,5 @@
 import * as components from '../state/types';
-import { Prefab } from '../state/prefabs';
+import { Prefab } from '../state';
 
 export type CharacterData = {
     readonly id: string;

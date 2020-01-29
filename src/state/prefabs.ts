@@ -1,15 +1,10 @@
 import cloneDeep from 'clone-deep';
 import {
-    Entity, EntityRef, ALL_TYPES, Component, ComponentRef, UnionType, WithComponent,
+    Entity, EntityRef, ALL_TYPES, Component, ComponentRef, UnionType, WithComponent, Prefab,
 } from './types';
 import * as state from '.';
 
 const ALL_TYPES_CACHE: Set<string> = new Set(ALL_TYPES);
-
-export type Prefab<T extends UnionType = never> = {
-    root: Omit<Entity, 'id'> & WithComponent<T>,
-    [id: string]: Omit<Entity, 'id'>
-};
 
 function isObject(item: unknown): item is {[key: string]: unknown} {
     return item instanceof Object;

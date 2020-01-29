@@ -4,10 +4,10 @@ import * as gamedata from '../gamedata';
 import * as prefabs from '../state/prefabs';
 import * as decks from './decks';
 import * as position from './position';
-import * as attack from './attack';
+import * as combatEffects from './combat-effects';
 import * as cards from './cards';
 import * as targetting from './targetting';
-import * as buffs from './buffs';
+import * as buffs from './combat-effects/buffs';
 import * as ownership from './ownership';
 
 // the combat system is the overarching system to handle any session in combat
@@ -114,7 +114,7 @@ export function beginCombat(
         for (const cardDataId of characterData.actionCards) {
             const cardEntity = cards.createCard(sessionId, cardDataId);
 
-            ownership.applyCardOwnership(sessionId, characterEntity, cardEntity);
+            ownership.applyOwnership(sessionId, characterEntity, cardEntity);
 
             playerActionCardRefs.push(state.getComponentRef(
                 state.getComponent(cardEntity, 'action card'),
@@ -290,17 +290,26 @@ export function playerAttack(sessionId: string, cardId: string): string | null {
     }
 
     const defenseCardRef = decks.peek(state.getComponent(enemy, 'action deck'), 1)[0];
-    const defenseCard = defenseCardRef
-        ? state.getEntityByComponent(sessionId, state.getComponentByRef(sessionId, defenseCardRef))
-        : undefined;
+    const playedCards = [attackCardEntity];
+
+    if (defenseCardRef) {
+        playedCards.push(state.getEntityByComponent(
+            sessionId,
+            state.getComponentByRef(sessionId, defenseCardRef),
+        ));
+    }
 
     // run damage system
-    attack.run(
+    combatEffects.run(
         sessionId,
-        state.getEntityByRef<'health' | 'attacker'>(sessionId, owner.data.owner),
-        enemy,
-        attackCardEntity,
-        defenseCard,
+        'act',
+        {
+            attacker: undefined,
+            defender: undefined,
+            active: state.getEntityByRef<'health' | 'attacker'>(sessionId, owner.data.owner),
+            reactive: enemy,
+        },
+        playedCards,
     );
 
     // check for player victory
@@ -405,37 +414,45 @@ export function playerDefend(sessionId: string, defendCardId: string | null): st
     }
 
     // verify selected card is valid
-    let defenseCard = null;
+    const attackCard = state.getComponentByRef(sessionId, attackCardRef);
+    const playedCards = [
+        state.getEntityByComponent(sessionId, attackCard),
+    ];
+    let defenseCard: null | state.Component<'action card'> = null;
 
     if (defendCardId !== null) {
         defenseCard = state.getComponentByRef(sessionId, {
             id: defendCardId,
             type: 'action card',
         });
+
+        playedCards.push(state.getEntityByComponent(sessionId, defenseCard));
     }
 
     // run targetting system
-    const attackCard = state.getComponentByRef(sessionId, attackCardRef);
-    const target = targetting.selectTarget(sessionId, attackCard, defenseCard);
+    const target = targetting.selectTarget(
+        sessionId,
+        playedCards,
+    );
 
     // run damage system
-    let defenseEntity: state.Entity & state.WithComponent<'action card'> | undefined;
-    if (defenseCard) {
-        defenseEntity = state.getEntityByComponent(sessionId, defenseCard);
-    }
-
     const enemy = state.getEntityWithComponents(sessionId, 'enemy status', 'attacker');
 
     if (enemy === null) {
         throw new Error('Combat corrupted');
     }
 
-    attack.run(
+    // run damage system
+    combatEffects.run(
         sessionId,
-        enemy,
-        target,
-        state.getEntityByComponent(sessionId, attackCard),
-        defenseEntity,
+        'act',
+        {
+            attacker: undefined,
+            defender: undefined,
+            active: enemy,
+            reactive: target,
+        },
+        playedCards,
     );
 
     // check for player defeat

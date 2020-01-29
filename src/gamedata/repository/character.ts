@@ -1,8 +1,10 @@
 import { CharacterData } from '../types';
 import { mapFromObject } from './map-from-object';
 import * as components from '../../state/types';
-import { Prefab } from '../../state/prefabs';
-import { createComponents, componentsToComponentMap, createComponentData } from './prefab-helpers';
+import { Prefab } from '../../state';
+import {
+    createComponents, componentsToComponentMap, createComponentData, componentDataToComponentMap,
+} from './prefab-helpers';
 
 function createCharacter(
     dataId: string,
@@ -10,9 +12,7 @@ function createCharacter(
         maxHp: number,
         armor: number,
         damage: number,
-        passiveAttackEffects?: components.ComponentData[],
-        passiveDefendEffects?: components.ComponentData[],
-        passiveUniversalEffects?: components.ComponentData[],
+        passive?: components.ComponentData[],
         links?: {
             [entityId: string]: components.ComponentData[],
         }
@@ -51,46 +51,20 @@ function createCharacter(
                         baseDamage: options.damage,
                     },
                 }),
-                [components.COMBAT_EFFECT]: createComponents<typeof components.COMBAT_EFFECT>({
+                [components.LINK_EFFECT]: createComponents<typeof components.LINK_EFFECT>({
                     id: 'passive',
                     data: {
-                        type: components.COMBAT_EFFECT,
-                        universalRef: {
-                            id: 'universalEntity',
-                            withComponents: {},
-                        },
-                        attackRef: {
-                            id: 'attackEntity',
-                            withComponents: {},
-                        },
-                        defendRef: {
-                            id: 'defendEntity',
+                        type: components.LINK_EFFECT,
+                        ref: {
+                            id: 'passive',
                             withComponents: {},
                         },
                     },
                 }),
             },
         },
-        attackEntity: {
-            components: componentsToComponentMap(options?.passiveAttackEffects?.map((data) => {
-                nextId += 1;
-                return {
-                    id: String(nextId),
-                    data,
-                };
-            })),
-        },
-        defendEntity: {
-            components: componentsToComponentMap(options?.passiveDefendEffects?.map((data) => {
-                nextId += 1;
-                return {
-                    id: String(nextId),
-                    data,
-                };
-            })),
-        },
-        universalEntity: {
-            components: componentsToComponentMap(options?.passiveUniversalEffects?.map((data) => {
+        passive: {
+            components: componentsToComponentMap(options?.passive?.map((data) => {
                 nextId += 1;
                 return {
                     id: String(nextId),
@@ -140,9 +114,15 @@ const characters: Map<string, CharacterData> = mapFromObject({
             maxHp: 30,
             damage: 5,
             armor: 0,
-            passiveDefendEffects: createComponentData({
+            passive: createComponentData({
                 type: components.THREAT,
                 modifier: -1,
+            }, {
+                type: components.COMBAT_EFFECT,
+                on: 'act',
+            }, {
+                type: components.IF_OWNER_IS,
+                actorTag: 'reactive',
             }),
         }),
     },
@@ -164,30 +144,31 @@ const characters: Map<string, CharacterData> = mapFromObject({
             maxHp: 40,
             damage: 4,
             armor: 2,
-            passiveAttackEffects: createComponentData({
+            passive: createComponentData({
                 type: components.APPLY_BUFF,
                 duration: 1,
                 applyTo: 'attacker',
-                universalRef: {
-                    id: 'emptyBuff',
-                    withComponents: {},
+                prefab: {
+                    root: {
+                        components: componentDataToComponentMap(createComponentData({
+                            type: components.BONUS_DAMAGE,
+                            add: 2,
+                        }, {
+                            type: components.COMBAT_EFFECT,
+                            on: 'attack',
+                        }, {
+                            type: components.IF_OWNER_IS,
+                            actorTag: 'attacker',
+                        })),
+                    },
                 },
-                attackRef: {
-                    id: 'attackBuff',
-                    withComponents: {},
-                },
-                defendRef: {
-                    id: 'emptyBuff',
-                    withComponents: {},
-                },
+            }, {
+                type: components.COMBAT_EFFECT,
+                on: 'attack',
+            }, {
+                type: components.IF_OWNER_IS,
+                actorTag: 'attacker',
             }),
-            links: {
-                attackBuff: createComponentData({
-                    type: components.BONUS_DAMAGE,
-                    add: 2,
-                }),
-                emptyBuff: [],
-            },
         }),
     },
     medusa: {
@@ -208,33 +189,37 @@ const characters: Map<string, CharacterData> = mapFromObject({
             maxHp: 30,
             damage: 5,
             armor: 0,
-            passiveAttackEffects: createComponentData({
+            passive: createComponentData({
                 type: components.APPLY_BUFF,
                 duration: 3,
                 applyTo: 'attacker',
-                universalRef: {
-                    id: 'emptyBuff',
-                    withComponents: {},
-                },
-                attackRef: {
-                    id: 'threatBuff',
-                    withComponents: {},
-                },
-                defendRef: {
-                    id: 'emptyBuff',
-                    withComponents: {},
+                prefab: {
+                    root: {
+                        components: componentDataToComponentMap(createComponentData(
+                            {
+                                type: components.THREAT,
+                                modifier: -1,
+                            }, {
+                                type: components.COMBAT_EFFECT,
+                                on: 'act',
+                            }, {
+                                type: components.IF_OWNER_IS,
+                                actorTag: 'reactive',
+                            },
+                        )),
+                    },
                 },
             }, {
                 type: components.IF_POSTION,
+                applyTo: 'attacker',
                 tags: ['offensive'],
+            }, {
+                type: components.IF_OWNER_IS,
+                actorTag: 'attacker',
+            }, {
+                type: components.COMBAT_EFFECT,
+                on: 'attack',
             }),
-            links: {
-                threatBuff: createComponentData({
-                    type: components.THREAT,
-                    modifier: -1,
-                }),
-                emptyBuff: [],
-            },
         }),
     },
 });

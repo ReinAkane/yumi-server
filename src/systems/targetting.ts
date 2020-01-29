@@ -1,6 +1,6 @@
 import * as state from '../state';
 import { chance } from '../chance';
-import { eachRelevantEffect } from './combat-effects';
+import { eachRelevantEffect } from './combat-effects/events';
 import { log } from '../log';
 
 function calculateTaunt(effects: Iterable<state.Entity>): number {
@@ -47,8 +47,7 @@ function sortByPriority(priorities: Map<state.Entity, number>) {
 
 export function selectTarget(
     sessionId: string,
-    activeCard: state.Component<'action card'>,
-    reactiveCard: state.Component<'action card'> | null,
+    cards: state.Entity[],
 ): state.Entity & state.WithComponent<'character status' | 'health'> {
     log('Selecting target...', 'targetting');
     const characters = state.getEntitiesWithComponents(sessionId, 'character status', 'health');
@@ -63,33 +62,38 @@ export function selectTarget(
     }
 
     const priorities: Map<state.Entity, number> = new Map();
-    const attackCard = state.getComponentByRef(sessionId, activeCard.data.activeEffectRef);
-    const defendCard = reactiveCard
-        ? state.getComponentByRef(sessionId, reactiveCard.data.reactiveEffectRef)
-        : undefined;
 
     for (const character of characters) {
         log(`Calculate priority for ${state.getComponent(character, 'character status').data.dataId}...`, 'targetting');
-        const tauntMultiplier = calculateRage(eachRelevantEffect(sessionId, {
-            attacker: enemy,
-            attackCard,
-            defender: character,
-            defendCard,
-        }, true));
+        const tauntMultiplier = calculateRage(eachRelevantEffect(
+            sessionId,
+            'act',
+            {
+                active: enemy,
+                reactive: character,
+            },
+            cards,
+        ));
         log(`    Rage: ${tauntMultiplier}`, 'targetting');
-        const taunt = calculateTaunt(eachRelevantEffect(sessionId, {
-            attacker: enemy,
-            attackCard,
-            defender: character,
-            defendCard,
-        }, true));
+        const taunt = calculateTaunt(eachRelevantEffect(
+            sessionId,
+            'act',
+            {
+                active: enemy,
+                reactive: character,
+            },
+            cards,
+        ));
         log(`    Taunt: ${taunt}`, 'targetting');
-        const threat = calculateThreat(eachRelevantEffect(sessionId, {
-            attacker: enemy,
-            attackCard,
-            defender: character,
-            defendCard,
-        }, true));
+        const threat = calculateThreat(eachRelevantEffect(
+            sessionId,
+            'act',
+            {
+                active: enemy,
+                reactive: character,
+            },
+            cards,
+        ));
         log(`    Threat: ${threat}`, 'targetting');
         const priority = chance.floating({
             min: 0,
