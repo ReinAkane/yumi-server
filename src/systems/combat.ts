@@ -302,7 +302,7 @@ export function playerAttack(sessionId: string, cardId: string): string | null {
     // run damage system
     combatEffects.run(
         sessionId,
-        'act',
+        'before act',
         {
             attacker: undefined,
             defender: undefined,
@@ -445,7 +445,7 @@ export function playerDefend(sessionId: string, defendCardId: string | null): st
     // run damage system
     combatEffects.run(
         sessionId,
-        'act',
+        'before act',
         {
             attacker: undefined,
             defender: undefined,

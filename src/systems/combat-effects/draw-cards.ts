@@ -4,13 +4,19 @@ import {
     getEntityRef,
     getComponent,
     Entity,
+    Event,
     DRAW_ACTION_CARD, HAND, ACTION_DECK, PLAYER_STATUS,
 } from '../../state';
 import * as decks from '../decks';
 import { CombatActors } from './combat-actors';
 import { eachRelevantEffect } from './events';
 
-export function run(sessionId: string, event: 'act' | 'attack', actors: CombatActors, cards: Iterable<Entity>): void {
+export function run(
+    sessionId: string,
+    event: Event,
+    actors: CombatActors,
+    cards: Iterable<Entity>,
+): void {
     for (const entity of eachRelevantEffect(sessionId, event, actors, cards)) {
         for (const draw of getFreshComponents(sessionId, entity, DRAW_ACTION_CARD)) {
             const player = getEntityWithComponents(

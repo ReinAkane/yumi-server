@@ -67,7 +67,7 @@ export function selectTarget(
         log(`Calculate priority for ${state.getComponent(character, 'character status').data.dataId}...`, 'targetting');
         const tauntMultiplier = calculateRage(eachRelevantEffect(
             sessionId,
-            'act',
+            'before act',
             {
                 active: enemy,
                 reactive: character,
@@ -77,7 +77,7 @@ export function selectTarget(
         log(`    Rage: ${tauntMultiplier}`, 'targetting');
         const taunt = calculateTaunt(eachRelevantEffect(
             sessionId,
-            'act',
+            'before act',
             {
                 active: enemy,
                 reactive: character,
@@ -87,7 +87,7 @@ export function selectTarget(
         log(`    Taunt: ${taunt}`, 'targetting');
         const threat = calculateThreat(eachRelevantEffect(
             sessionId,
-            'act',
+            'before act',
             {
                 active: enemy,
                 reactive: character,

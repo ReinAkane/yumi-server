@@ -82,35 +82,35 @@ const asAttacker = createComponentData({
     actorTag: 'attacker',
 }, {
     type: components.COMBAT_EFFECT,
-    on: 'attack',
+    on: 'after attack',
 });
 const asActive = createComponentData({
     type: components.IF_OWNER_IS,
     actorTag: 'active',
 }, {
     type: components.COMBAT_EFFECT,
-    on: 'act',
+    on: 'before act',
 });
 const asDefender = createComponentData({
     type: components.IF_OWNER_IS,
     actorTag: 'defender',
 }, {
     type: components.COMBAT_EFFECT,
-    on: 'attack',
+    on: 'after attack',
 });
 const asReactive = createComponentData({
     type: components.IF_OWNER_IS,
     actorTag: 'reactive',
 }, {
     type: components.COMBAT_EFFECT,
-    on: 'act',
+    on: 'before act',
 });
 const asReactiveTeam = createComponentData({
     type: components.IF_TEAM_IS,
     tag: 'reactive',
 }, {
     type: components.COMBAT_EFFECT,
-    on: 'act',
+    on: 'before act',
 });
 
 const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardData, 'id'>>({

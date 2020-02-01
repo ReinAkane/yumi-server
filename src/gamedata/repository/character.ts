@@ -119,7 +119,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
                 modifier: -1,
             }, {
                 type: components.COMBAT_EFFECT,
-                on: 'act',
+                on: 'before act',
             }, {
                 type: components.IF_OWNER_IS,
                 actorTag: 'reactive',
@@ -155,7 +155,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
                             add: 2,
                         }, {
                             type: components.COMBAT_EFFECT,
-                            on: 'attack',
+                            on: 'after attack',
                         }, {
                             type: components.IF_OWNER_IS,
                             actorTag: 'attacker',
@@ -164,7 +164,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
                 },
             }, {
                 type: components.COMBAT_EFFECT,
-                on: 'attack',
+                on: 'after attack',
             }, {
                 type: components.IF_OWNER_IS,
                 actorTag: 'attacker',
@@ -201,7 +201,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
                                 modifier: -1,
                             }, {
                                 type: components.COMBAT_EFFECT,
-                                on: 'act',
+                                on: 'before act',
                             }, {
                                 type: components.IF_OWNER_IS,
                                 actorTag: 'reactive',
@@ -218,7 +218,7 @@ const characters: Map<string, CharacterData> = mapFromObject({
                 actorTag: 'attacker',
             }, {
                 type: components.COMBAT_EFFECT,
-                on: 'attack',
+                on: 'after attack',
             }),
         }),
     },

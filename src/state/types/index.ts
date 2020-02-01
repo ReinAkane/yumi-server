@@ -94,9 +94,10 @@ export type Attacker = {
     readonly baseDamage: number;
 };
 
+export type Event = 'before act' | 'after attack';
 export type CombatEffect = {
     readonly type: typeof types.COMBAT_EFFECT;
-    readonly on: 'act' | 'attack';
+    readonly on: Event;
 };
 
 export type ActionCard = {

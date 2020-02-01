@@ -4,6 +4,7 @@ import {
     getEntityByRef,
     Entity,
     Component,
+    Event,
     MOVE_TO_POSITION,
     CARD_OWNER,
 } from '../../state';
@@ -31,7 +32,12 @@ function getTarget(
     return actors[move.data.applyTo];
 }
 
-export function run(sessionId: string, event: 'act' | 'attack', actors: CombatActors, cards: Iterable<Entity>): void {
+export function run(
+    sessionId: string,
+    event: Event,
+    actors: CombatActors,
+    cards: Iterable<Entity>,
+): void {
     for (const entity of eachRelevantEffect(sessionId, event, actors, cards)) {
         for (const move of getFreshComponents(sessionId, entity, MOVE_TO_POSITION)) {
             const target = getTarget(sessionId, move, actors, entity);

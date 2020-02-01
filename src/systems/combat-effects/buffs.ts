@@ -100,7 +100,7 @@ function getApplyTarget(
 
 export function run(
     sessionId: string,
-    event: 'act' | 'attack',
+    event: state.Event,
     actors: CombatActors,
     cards: Iterable<state.Entity>,
 ): void {

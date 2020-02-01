@@ -1,6 +1,7 @@
 import {
     Entity,
     EntityRef,
+    Event,
     COMBAT_EFFECT,
     POSITION,
     LINK_EFFECT,
@@ -16,7 +17,7 @@ import { matchConditions } from './conditionals';
 import { CombatActors } from './combat-actors';
 
 type CombatEffectSystem = {
-    run: (sessionId: string, event: 'act' | 'attack', actors: CombatActors, cards: Iterable<Entity>) => void
+    run: (sessionId: string, event: Event, actors: CombatActors, cards: Iterable<Entity>) => void
 };
 
 const systems: CombatEffectSystem[] = [];
@@ -27,7 +28,7 @@ export function registerSystems(...registered: CombatEffectSystem[]): void {
 
 function* eachLinkedEntity(
     sessionId: string,
-    event: 'act' | 'attack',
+    event: Event,
     ref: EntityRef,
     actors?: CombatActors,
     alreadyActive?: boolean,
@@ -56,12 +57,12 @@ export function* allEntities(
     sessionId: string,
     ref: EntityRef,
 ): Generator<Entity> {
-    yield* eachLinkedEntity(sessionId, 'act', ref, undefined, true);
+    yield* eachLinkedEntity(sessionId, 'before act', ref, undefined, true);
 }
 
 export function* eachRelevantEffect(
     sessionId: string,
-    event: 'act' | 'attack',
+    event: Event,
     actors: CombatActors,
     cards: Iterable<Entity>,
 ): Generator<Entity> {
@@ -124,7 +125,12 @@ export function* eachRelevantEffect(
     }
 }
 
-export function run(sessionId: string, event: 'act' | 'attack', actors: CombatActors, cards: Iterable<Entity>): void {
+export function run(
+    sessionId: string,
+    event: Event,
+    actors: CombatActors,
+    cards: Iterable<Entity>,
+): void {
     for (const system of systems) {
         system.run(sessionId, event, actors, cards);
     }

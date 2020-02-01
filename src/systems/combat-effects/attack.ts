@@ -34,7 +34,12 @@ function getActor(
     return actors[tag];
 }
 
-export function run(sessionId: string, event: 'act' | 'attack', actors: CombatActors, cards: Iterable<state.Entity>): void {
+export function run(
+    sessionId: string,
+    event: state.Event,
+    actors: CombatActors,
+    cards: Iterable<state.Entity>,
+): void {
     log('Starting attack system...', 'attack');
     // for each eachRelevantEffect
     for (const entity of events.eachRelevantEffect(sessionId, event, actors, cards)) {
@@ -55,17 +60,17 @@ export function run(sessionId: string, event: 'act' | 'attack', actors: CombatAc
                         defender,
                     };
                     if (!shouldCancelAttacks(
-                        events.eachRelevantEffect(sessionId, 'attack', attackActors, cards),
+                        events.eachRelevantEffect(sessionId, 'after attack', attackActors, cards),
                     )) {
                         log('Running damage system!', 'attack');
                         damage.run(
                             state.getEntityByComponent(sessionId, attackerComponent),
                             state.getEntityByComponent(sessionId, defenderComponent),
-                            events.eachRelevantEffect(sessionId, 'attack', attackActors, cards),
+                            events.eachRelevantEffect(sessionId, 'after attack', attackActors, cards),
                         );
                     }
 
-                    events.run(sessionId, 'attack', attackActors, cards);
+                    events.run(sessionId, 'after attack', attackActors, cards);
                 }
             }
         }
