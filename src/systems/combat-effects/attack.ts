@@ -34,6 +34,40 @@ function getActor(
     return actors[tag];
 }
 
+function runAttack(
+    sessionId: string,
+    attacker: state.Entity | undefined,
+    defender: state.Entity | undefined,
+    actors: CombatActors,
+    cards: Iterable<state.Entity>,
+) {
+    log('Attack component found...', 'attack');
+    if (attacker && defender) {
+        const attackerComponent = state.getComponent(attacker, state.ATTACKER);
+        const defenderComponent = state.getComponent(defender, state.HEALTH);
+
+        if (attackerComponent && defenderComponent) {
+            const attackActors = {
+                ...actors,
+                attacker,
+                defender,
+            };
+            if (!shouldCancelAttacks(
+                events.eachRelevantEffect(sessionId, 'after attack', attackActors, cards),
+            )) {
+                log('Running damage system!', 'attack');
+                damage.run(
+                    state.getEntityByComponent(sessionId, attackerComponent),
+                    state.getEntityByComponent(sessionId, defenderComponent),
+                    events.eachRelevantEffect(sessionId, 'after attack', attackActors, cards),
+                );
+            }
+
+            events.run(sessionId, 'after attack', attackActors, cards);
+        }
+    }
+}
+
 export function run(
     sessionId: string,
     event: state.Event,
@@ -46,32 +80,30 @@ export function run(
         for (const attack of state.getFreshComponents(sessionId, entity, state.ATTACK)) {
             // run attack if needed
             const attacker = getActor(sessionId, attack.data.actor, actors, entity);
-            const defender = actors[attack.data.target];
-
-            log('Attack component found...', 'attack');
-            if (attacker && defender) {
-                const attackerComponent = state.getComponent(attacker, state.ATTACKER);
-                const defenderComponent = state.getComponent(defender, state.HEALTH);
-
-                if (attackerComponent && defenderComponent) {
-                    const attackActors = {
-                        ...actors,
+            if (attack.data.target === 'all players') {
+                for (const defender of state.getEntitiesWithComponents(
+                    sessionId,
+                    state.PLAYER_STATUS,
+                    state.HEALTH,
+                )) {
+                    runAttack(
+                        sessionId,
                         attacker,
                         defender,
-                    };
-                    if (!shouldCancelAttacks(
-                        events.eachRelevantEffect(sessionId, 'after attack', attackActors, cards),
-                    )) {
-                        log('Running damage system!', 'attack');
-                        damage.run(
-                            state.getEntityByComponent(sessionId, attackerComponent),
-                            state.getEntityByComponent(sessionId, defenderComponent),
-                            events.eachRelevantEffect(sessionId, 'after attack', attackActors, cards),
-                        );
-                    }
-
-                    events.run(sessionId, 'after attack', attackActors, cards);
+                        actors,
+                        cards,
+                    );
                 }
+            } else {
+                const defender = actors[attack.data.target];
+
+                runAttack(
+                    sessionId,
+                    attacker,
+                    defender,
+                    actors,
+                    cards,
+                );
             }
         }
     }

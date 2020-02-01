@@ -138,7 +138,7 @@ export type Rage = {
 export type Attack = {
     readonly type: typeof types.ATTACK;
     readonly actor: ActorTag | 'owner';
-    readonly target: ActorTag;
+    readonly target: ActorTag | 'all players';
 };
 
 export type CancelAttacks = {
