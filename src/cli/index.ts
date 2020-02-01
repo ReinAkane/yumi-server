@@ -58,11 +58,15 @@ function displayOwner(entity: state.Entity): string {
     const owner = state.getComponent(entity, state.CARD_OWNER);
 
     if (owner !== null) {
-        const ownerEnt = state.getEntityByRef<never>(sessionId, owner.data.owner);
+        try {
+            const ownerEnt = state.getEntityByRef<never>(sessionId, owner.data.owner);
 
-        const owningCharacter = state.getComponent(ownerEnt, state.CHARACTER_STATUS);
-        if (owningCharacter !== null) {
-            return `${gamedata.getCharacter(owningCharacter.data.dataId).name}: `;
+            const owningCharacter = state.getComponent(ownerEnt, state.CHARACTER_STATUS);
+            if (owningCharacter !== null) {
+                return `${gamedata.getCharacter(owningCharacter.data.dataId).name}: `;
+            }
+        } catch (error) {
+            return '';
         }
     }
 

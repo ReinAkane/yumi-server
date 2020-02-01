@@ -5,7 +5,14 @@ const enemies: Map<string, EnemyData> = mapFromObject({
     jotun: {
         name: 'Jotun',
         maxHp: 100,
-        actionCards: ['jotun.attack-a'],
+        actionCards: [
+            'jotun.attack-a',
+            'jotun.attack-b',
+            'jotun.stun-a',
+            'jotun.stun-b',
+            'jotun.aoe',
+            'jotun.double-attack',
+        ],
         baseDamage: 10,
         baseArmor: 0,
     },

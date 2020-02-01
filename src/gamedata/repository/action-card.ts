@@ -1,3 +1,4 @@
+import clone from 'clone-deep';
 import { ActionCardData } from '../types';
 import * as components from '../../state/types';
 import { Prefab } from '../../state';
@@ -6,30 +7,32 @@ import {
     createComponents, componentsToComponentMap, createComponentData, componentDataToComponentMap,
 } from './prefab-helpers';
 
-function createActionCard(dataId: string, options: {
-    effects?: components.ComponentData[][],
-    links?: {
-        [entityId: string]: components.ComponentData[],
+export type EditableEntity = {
+    components: {
+        [T in components.UnionType]?: components.Component<T>[];
     }
-}): Prefab<typeof components.ACTION_CARD> {
-    let nextId = 0;
-    const linkEffects: components.Component<typeof components.LINK_EFFECT>[] = [];
+};
 
-    const result: Prefab<typeof components.ACTION_CARD> = {
-        root: {
-            components: {
-                [components.ACTION_CARD]: createComponents<typeof components.ACTION_CARD>({
-                    id: 'actionCard',
-                    data: {
-                        dataId,
-                        type: components.ACTION_CARD,
-                    },
-                }),
-                [components.LINK_EFFECT]: linkEffects,
-            },
+export type EditablePrefab<T extends components.UnionType = never> = {
+    root: EditableEntity & components.WithComponent<T>,
+    [id: string]: EditableEntity
+};
+
+function fillPrefab<T extends components.UnionType>(
+    prefab: EditablePrefab<T>,
+    options: {
+        effects?: components.ComponentData[][],
+        links?: {
+            [entityId: string]: components.ComponentData[],
         },
-    };
+    },
+): Prefab<T> {
+    const linkEffects: components.Component<typeof components.LINK_EFFECT>[] = [];
+    const result = clone(prefab);
+    let nextId = 0;
     const links = options?.links || {};
+
+    result.root.components[components.LINK_EFFECT] = linkEffects;
 
     for (const linkId of Object.keys(links)) {
         if (result[linkId] !== undefined) {
@@ -75,6 +78,29 @@ function createActionCard(dataId: string, options: {
     }
 
     return result;
+}
+
+function createActionCard(dataId: string, options: {
+    effects?: components.ComponentData[][],
+    links?: {
+        [entityId: string]: components.ComponentData[],
+    }
+}): Prefab<typeof components.ACTION_CARD> {
+    const result: EditablePrefab<typeof components.ACTION_CARD> = {
+        root: {
+            components: {
+                [components.ACTION_CARD]: createComponents<typeof components.ACTION_CARD>({
+                    id: 'actionCard',
+                    data: {
+                        dataId,
+                        type: components.ACTION_CARD,
+                    },
+                }),
+            },
+        },
+    };
+
+    return fillPrefab(result, options);
 }
 
 const asAttacker = createComponentData({
@@ -707,6 +733,159 @@ const actionCards: Map<string, ActionCardData> = mapFromObject<Omit<ActionCardDa
                                 ...asDefender, {
                                     type: components.DAMAGE_REDUCTION,
                                     subtract: 5,
+                                },
+                            ]),
+                        },
+                    },
+                }),
+            ],
+        }),
+    },
+    'jotun.attack-b': {
+        name: 'Smash / Block',
+        prefab: createActionCard('jotun.attack-b', {
+            effects: [
+                createComponentData(...asActive, {
+                    type: components.ATTACK,
+                    actor: 'active',
+                    target: 'reactive',
+                }),
+                createComponentData(...asDefender, {
+                    type: components.IF_OWNER_IS,
+                    actorTag: 'reactive',
+                }, {
+                    type: components.DAMAGE_REDUCTION,
+                    subtract: 5,
+                }),
+            ],
+        }),
+    },
+    'jotun.stun-a': {
+        name: 'Daze / Block',
+        prefab: createActionCard('jotun.stun-a', {
+            effects: [
+                createComponentData(...asActive, {
+                    type: components.ATTACK,
+                    actor: 'active',
+                    target: 'reactive',
+                }),
+                createComponentData(...asAttacker, {
+                    type: components.IF_OWNER_IS,
+                    actorTag: 'active',
+                }, {
+                    type: components.DISCARD_PLAYER_CARDS,
+                    match: 'defender',
+                }),
+                createComponentData(...asDefender, {
+                    type: components.IF_OWNER_IS,
+                    actorTag: 'reactive',
+                }, {
+                    type: components.DAMAGE_REDUCTION,
+                    subtract: 3,
+                }),
+            ],
+        }),
+    },
+    'jotun.stun-b': {
+        name: 'Daze / Brutal Tantrum',
+        prefab: createActionCard('jotun.stun-b', {
+            effects: [
+                createComponentData(...asActive, {
+                    type: components.ATTACK,
+                    actor: 'active',
+                    target: 'reactive',
+                }),
+                createComponentData(...asAttacker, {
+                    type: components.IF_OWNER_IS,
+                    actorTag: 'active',
+                }, {
+                    type: components.DISCARD_PLAYER_CARDS,
+                    match: 'defender',
+                }),
+                createComponentData(...asReactive, {
+                    type: components.APPLY_BUFF,
+                    applyTo: 'reactive',
+                    duration: 1,
+                    prefab: {
+                        root: {
+                            components: componentDataToComponentMap([
+                                ...asDefender, {
+                                    type: components.DISCARD_PLAYER_CARDS,
+                                    match: 'attacker',
+                                },
+                            ]),
+                        },
+                    },
+                }),
+            ],
+        }),
+    },
+    'jotun.aoe': {
+        name: 'Earthquake / Raging Tantrum',
+        prefab: createActionCard('jotun.aoe', {
+            effects: [
+                createComponentData(...asActive, {
+                    type: components.ATTACK,
+                    actor: 'active',
+                    target: 'all players',
+                }),
+                createComponentData(...asReactive, {
+                    type: components.APPLY_BUFF,
+                    applyTo: 'reactive',
+                    duration: 1,
+                    prefab: {
+                        root: {
+                            components: componentDataToComponentMap([
+                                ...asDefender, {
+                                    type: components.APPLY_BUFF,
+                                    applyTo: 'defender',
+                                    prefab: fillPrefab(
+                                        { root: { components: {} } },
+                                        {
+                                            effects: [
+                                                createComponentData(...asActive, {
+                                                    type: components.RAGE,
+                                                    tauntMultiplier: 1.1,
+                                                }),
+                                                createComponentData(...asAttacker, {
+                                                    type: components.BONUS_DAMAGE,
+                                                    add: 1,
+                                                }),
+                                            ],
+                                        },
+                                    ),
+                                },
+                            ]),
+                        },
+                    },
+                }),
+            ],
+        }),
+    },
+    'jotun.double-attack': {
+        name: 'Double Smash / Striking Tantrum',
+        prefab: createActionCard('jotun.double-attack', {
+            effects: [
+                createComponentData(...asActive, {
+                    type: components.ATTACK,
+                    actor: 'active',
+                    target: 'reactive',
+                }, {
+                    type: components.ATTACK,
+                    actor: 'active',
+                    target: 'reactive',
+                }),
+                createComponentData(...asReactive, {
+                    type: components.APPLY_BUFF,
+                    applyTo: 'reactive',
+                    duration: 1,
+                    prefab: {
+                        root: {
+                            components: componentDataToComponentMap([
+                                ...asDefender, {
+                                    type: components.ATTACK,
+                                    actor: 'defender',
+                                    target: 'attacker',
                                 },
                             ]),
                         },

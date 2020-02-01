@@ -7,7 +7,7 @@ export function createComponents<T extends UnionType>(
 }
 
 export function componentsToComponentMap(items: Component[] = []): {
-    readonly [T in UnionType]?: readonly Component<T>[];
+    [T in UnionType]?: Component<T>[];
 } {
     const result: {[T in UnionType]?: Component<T>[]} = {};
 
@@ -31,7 +31,7 @@ export function createComponentData<T extends UnionType>(
 
 
 export function componentDataToComponentMap(items: ComponentData[] = []): {
-    readonly [T in UnionType]?: readonly Component<T>[];
+    [T in UnionType]?: Component<T>[];
 } {
     let nextId = 0;
     return componentsToComponentMap(items.map((data) => {
