@@ -257,8 +257,6 @@ function handleDefenseInput(input: string): boolean {
             return false;
         }
 
-        const defenderId = combat.playerDefend(sessionId, ref.id);
-
         const owner = state.getComponent(
             state.getEntityByComponent(
                 sessionId,
@@ -275,6 +273,8 @@ function handleDefenseInput(input: string): boolean {
                 'character status',
             )?.id;
         }
+
+        const defenderId = combat.playerDefend(sessionId, ref.id);
 
         const defender = state.getComponentByRef(sessionId, {
             id: defenderId,
