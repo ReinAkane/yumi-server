@@ -161,13 +161,13 @@ export type PositionCard = {
 export type Buff = {
     readonly type: typeof types.BUFF;
     readonly effectRef: ComponentRef<typeof types.LINK_EFFECT>;
-    readonly remainingTurns: number;
+    readonly remainingTurns?: number;
 };
 
 export type ApplyBuff = {
     readonly type: typeof types.APPLY_BUFF;
     readonly prefab: Prefab;
-    readonly duration: number;
+    readonly duration?: number;
     readonly applyTo: ActorTag | 'owner';
 };
 
@@ -208,6 +208,11 @@ export type IfTeamIs = {
     readonly tag: 'active' | 'reactive';
 };
 
+export type DiscardPlayerCards = {
+    readonly type: typeof types.DISCARD_PLAYER_CARDS;
+    readonly match: ActorTag;
+};
+
 /* eslint-disable @typescript-eslint/indent */
 export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.COMBAT_STATUS ? CombatStatus :
@@ -240,5 +245,6 @@ export type ComponentData<T extends types.UnionType = types.UnionType> =
     T extends typeof types.DRAW_ACTION_CARD ? DrawActionCard :
     T extends typeof types.IF_OWNER_IS ? IfOwnerIs :
     T extends typeof types.IF_TEAM_IS ? IfTeamIs :
+    T extends typeof types.DISCARD_PLAYER_CARDS ? DiscardPlayerCards :
     never;
 /* eslint-enable @typescript-eslint/indent */

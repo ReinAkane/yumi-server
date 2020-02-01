@@ -28,6 +28,7 @@ export const IF_POSTION = 'condition - position';
 export const DRAW_ACTION_CARD = 'action - draw action card';
 export const IF_OWNER_IS = 'condition - owner matches';
 export const IF_TEAM_IS = 'condition - team matches';
+export const DISCARD_PLAYER_CARDS = 'action - discard player cards';
 
 export type UnionType = typeof COMBAT_STATUS | typeof ENEMY_STATUS | typeof PLAYER_STATUS |
     typeof CHARACTER_STATUS | typeof HEALTH | typeof ACTION_DECK | typeof POSITION |
@@ -36,7 +37,7 @@ export type UnionType = typeof COMBAT_STATUS | typeof ENEMY_STATUS | typeof PLAY
     typeof TAUNT | typeof RAGE | typeof ATTACK | typeof CANCEL_ATTACKS | typeof ARMOR_PENETRATION |
     typeof POSITION_CARD | typeof BUFF | typeof APPLY_BUFF | typeof LINK_EFFECT |
     typeof REAPPLY_POSITION | typeof MOVE_TO_POSITION | typeof IF_POSTION |
-    typeof DRAW_ACTION_CARD | typeof IF_OWNER_IS | typeof IF_TEAM_IS;
+    typeof DRAW_ACTION_CARD | typeof IF_OWNER_IS | typeof IF_TEAM_IS | typeof DISCARD_PLAYER_CARDS;
 
 export const ALL_TYPES: UnionType[] = [
     COMBAT_STATUS,
@@ -69,4 +70,5 @@ export const ALL_TYPES: UnionType[] = [
     DRAW_ACTION_CARD,
     IF_OWNER_IS,
     IF_TEAM_IS,
+    DISCARD_PLAYER_CARDS,
 ];

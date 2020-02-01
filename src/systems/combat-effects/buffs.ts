@@ -15,14 +15,16 @@ function removeBuff(sessionId: string, buff: state.Component<typeof state.BUFF>)
 export function tickBuffs(sessionId: string): void {
     for (const entity of state.getEntitiesWithComponents(sessionId, state.BUFF)) {
         for (const buff of state.getComponents(entity, state.BUFF)) {
-            const remainingTurns = buff.data.remainingTurns - 1;
+            if (buff.data.remainingTurns !== undefined) {
+                const remainingTurns = buff.data.remainingTurns - 1;
 
-            if (remainingTurns < 0) {
-                removeBuff(sessionId, buff);
-            } else {
-                state.updateComponent(buff, {
-                    remainingTurns,
-                });
+                if (remainingTurns < 0) {
+                    removeBuff(sessionId, buff);
+                } else {
+                    state.updateComponent(buff, {
+                        remainingTurns,
+                    });
+                }
             }
         }
     }
