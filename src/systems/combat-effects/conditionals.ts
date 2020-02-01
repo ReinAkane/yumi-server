@@ -10,7 +10,7 @@ import {
     getFreshComponents,
     getFreshComponent,
     getComponentByRef,
-    getEntityByComponent,
+    getEntityByRef,
 } from '../../state';
 import { CombatActors } from './combat-actors';
 
@@ -85,7 +85,7 @@ function matchTeam(
 
     const ownerTeam = getFreshComponent(
         sessionId,
-        getEntityByComponent(sessionId, owner),
+        getEntityByRef<never>(sessionId, owner.data.owner),
         CHARACTER_STATUS,
     ) === null ? ENEMY_STATUS : CHARACTER_STATUS;
     let activeTeam = CHARACTER_STATUS;
